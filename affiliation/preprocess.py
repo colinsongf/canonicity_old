@@ -2,6 +2,10 @@ from lxml import etree, objectify
 import os
 import csv
 
+def getFiles(folder):
+	files = [join(src_folder, f) for f in listdir(src_folder) if ".xml" in f]
+	return files
+
 def genTrainFile(src_folder, tar_folder):
 	from os import listdir
 	from os.path import isfile, join
