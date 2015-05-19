@@ -57,3 +57,7 @@ def get_word_shape(token):
 			middle.append(c)
 
 	return (shape[0] + middle + suffix).join("")
+
+def dehyphenize(text):
+	res = ""
+	
