@@ -50,21 +50,35 @@ class FeatureVectorAffiliation(object):
 
 			features.punct_type = "NOPUNCT"
 
+			features.word_shape = utils.get_word_shape(token)
+		return features
 
-
-
-
-	def add_feature(lines, location):
+	@static_method
+	def proc_lines(lines, location):
 		line_stat = "LINESTART"
 		result = []
 
-		for line in lines:
+		for i, line in enumerate(lines):
 			is_loc = False
 			if line == "\n":
 				result.append("\n \n")
 				continue
-			skip_test = False
-			for 
+
+			if line.strip() == "":
+				result.append("\n")
+				line_stat = "LINESTART"
+			else:
+				if (i+1) < len(lines):
+					if lines[i+1].strip() == "":
+						line_stat = "LINEEND"
+				elif (i+1) == len(lines):
+					line_stat = "LINEEND"
+
+				vector = proc_line(line, line_stat, is_loc)
+				result.append(vector.gen_vector())
+
+				if line_stat == "LINESTART":
+					line_stat = "LINEIN"
 
 
 
@@ -87,3 +101,44 @@ class FeatureVectorAffiliation(object):
 		res.append(s[-3:])
 		res.append(s[-4:])
 
+		res.append(self.line_stat)
+		if self.digit == "ALLDIGIT":
+			res.append("NOCAPS")
+		else:
+			res.append(self.capital)
+		res.append(self.digit)
+
+		if self.single_char:
+			res.append("1")
+		else:
+			res.append("0")
+
+		if self.proper_name:
+			res.append("1")
+		else:
+			res.append("0")
+
+		if self.common_name:
+			res.append("1")	
+		else:
+			res.append("0")
+
+		if self.location_name:
+			res.append("1")
+		else:
+			res.append("0")
+
+		if self.country_name:
+			res.append("1")
+		else:
+			res.append("0")
+
+		res.append(punct_type)
+
+		res.append(word_shape)
+
+		if label is not None:
+			res.append(label)
+		else:
+			res.append("0")
+		return res.join(" ")
