@@ -56,7 +56,7 @@ def get_word_shape(token):
 		if c != middle[-1]:
 			middle.append(c)
 
-	return (shape[0] + middle + suffix).join("")
+	return "".join([shape[0]] + middle + suffix)
 
 def dehyphenize(text):
 	res = ""

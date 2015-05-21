@@ -18,7 +18,7 @@ class FeatureVectorAffiliation(object):
 		self.punct_type = None
 		self.word_shape = None # NOPUNCT, OPENBACKET, ENDBACKET, DOT, COMMA, HYPHEN, QUOTE, PUNCT
 
-	@static_method
+	@staticmethod
 	def proc_line(line, line_stat, is_place):
 		features = FeatureVectorAffiliation()
 		tokens = line.split()
@@ -53,7 +53,7 @@ class FeatureVectorAffiliation(object):
 			features.word_shape = utils.get_word_shape(token)
 		return features
 
-	@static_method
+	@staticmethod
 	def proc_lines(lines, location):
 		line_stat = "LINESTART"
 		result = []
@@ -62,6 +62,10 @@ class FeatureVectorAffiliation(object):
 			is_loc = False
 			if line == "\n":
 				result.append("\n \n")
+				continue
+
+			if (line.strip() == "@newline"):
+				line_stat = "LINESTART"
 				continue
 
 			if line.strip() == "":
@@ -74,18 +78,19 @@ class FeatureVectorAffiliation(object):
 				elif (i+1) == len(lines):
 					line_stat = "LINEEND"
 
-				vector = proc_line(line, line_stat, is_loc)
+				vector = FeatureVectorAffiliation.proc_line(line, line_stat, is_loc)
 				result.append(vector.gen_vector())
 
 				if line_stat == "LINESTART":
 					line_stat = "LINEIN"
+		return result
 
 
 
-	def gen_vector():
+	def gen_vector(self):
 		if self.string is None:
 			return None
-		if len(self.string) = 0:
+		if len(self.string) == 0:
 			return None
 		res = [self.string]
 		s = self.string
@@ -133,12 +138,12 @@ class FeatureVectorAffiliation(object):
 		else:
 			res.append("0")
 
-		res.append(punct_type)
+		res.append(self.punct_type)
 
-		res.append(word_shape)
+		res.append(self.word_shape)
 
-		if label is not None:
-			res.append(label)
+		if self.label is not None:
+			res.append(self.label)
 		else:
 			res.append("0")
-		return res.join(" ")
+		return " ".join(res)

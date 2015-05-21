@@ -3,32 +3,34 @@ import logging
 import CRFPP
 import nltk
 
+def get_tagger():
+	tagger = CRFPP.Tagger("-m ../models/model.crf -v 3 -n2")
+	tagger.clear()
+	return tagger
+
 class AffilaitonParser(object):
 	def __init__(self):
 		pass
 
-	@static_method
-	def get_tagger():
-		tagger = CRFPP.Tagger("-m ../models/model.crf -v 3 -n2")
-		tagger.clear()
-		return tagger
-
-	def process(data):
+	def process(self, data):
 		blocks = []
 		output = []
 		data = data.strip()
 		for line in data.split("\n"):
 			tokens = nltk.word_tokenize(line)
 			for tk in tokens:
-				blocks.append(tk + " <affiliation>")
+				blocks.append(tk)# + " <affiliation>")
 				output.append(tk)
 			blocks.append("@newline")
 			output.append(" ")
+		print blocks
 		
 		features = FeatureVectorAffiliation.proc_lines(blocks, [])
+		print features
 		
 		tagger = get_tagger()
-		tagger.add(features)
+		for f in features:
+			tagger.add(f)
 		tagger.parse()
 
 		res = []
@@ -37,4 +39,9 @@ class AffilaitonParser(object):
 				logging.info(tagger.x(i, j))
 				res.append(tagger.x(i, j))
 			res.append(tagger.y2(i))
+		print res
+
+if __name__ == "__main__":
+	p = AffilaitonParser()
+	p.process("School of Electrical and Electronic Engineering, Nanyang Technological University, Nanyang Avenue, Singapore 639798, Singapore")
 
