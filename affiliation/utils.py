@@ -1,3 +1,5 @@
+
+
 def test_all_captial(token):
 	all_caps = True
 	for l in token:
@@ -60,4 +62,7 @@ def get_word_shape(token):
 
 def dehyphenize(text):
 	res = ""
+
+def contain_chars(char_set, text):
+	return any(elem in text for elem in char_set)
 	

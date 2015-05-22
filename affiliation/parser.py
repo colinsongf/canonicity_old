@@ -35,10 +35,8 @@ class AffilaitonParser(object):
 
 		res = []
 		for i in range(tagger.size() - 1):
-			for j in range(tagger.xsize() -1):
-				logging.info(tagger.x(i, j))
-				res.append(tagger.x(i, j))
-			res.append(tagger.y2(i))
+			# for j in range(tagger.xsize() -1):
+			res.append((tagger.x(i, 0), tagger.y2(i)))
 		print res
 
 if __name__ == "__main__":
