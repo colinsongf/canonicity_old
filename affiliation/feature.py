@@ -40,6 +40,7 @@ class FeatureVectorAffiliation(object):
 
 			features.common_name = False
 			features.proper_name = False
+			features.location_name = is_place
 
 			if utils.test_all_digit(token):
 				features.digit = "ALLDIGIT"
@@ -57,12 +58,27 @@ class FeatureVectorAffiliation(object):
 	def proc_lines(lines, location):
 		line_stat = "LINESTART"
 		result = []
+		location = location[0]
+		cur_pos_place = 0
+		cur_token = 0
 
 		for i, line in enumerate(lines):
 			is_loc = False
 			if line == "\n":
 				result.append("\n \n")
 				continue
+
+			for j in range(cur_pos_place, len(location)):
+				loc = location[j]
+				if loc[0] <= cur_token and loc[1] >= cur_token:
+					is_loc = True
+					cur_pos_place = j
+					break
+				elif loc[0] > cur_token:
+					is_loc = False
+					cur_pos_place = j
+					break
+
 
 			if (line.strip() == "@newline"):
 				line_stat = "LINESTART"
