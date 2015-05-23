@@ -1,4 +1,5 @@
 import utils
+from lexicon import lex
 
 class FeatureVectorAffiliation(object):
 	def __init__(self):
@@ -42,6 +43,7 @@ class FeatureVectorAffiliation(object):
 			features.proper_name = False
 			features.location_name = is_place
 
+
 			if utils.test_all_digit(token):
 				features.digit = "ALLDIGIT"
 			elif utils.test_contain_digit(token):
@@ -50,6 +52,18 @@ class FeatureVectorAffiliation(object):
 				features.digit = "NODIGIT"
 
 			features.punct_type = "NOPUNCT"
+			if token == ",":
+				features.punct_type = "COMMA"
+			if token == "(" or token == "[":
+				features.punct_type = "OPENBRACKET"
+			if token == ".":
+				features.punct_type = "DOT"
+			if token == "-":
+				features.punct_type = "HYPHEN"
+			if token == "\"" or token == "\'" or token == "`":
+				features.punct_type = "QUOTE"
+
+			features.country_name = lex.is_country(token)
 
 			features.word_shape = utils.get_word_shape(token)
 		return features
@@ -99,6 +113,9 @@ class FeatureVectorAffiliation(object):
 
 				if line_stat == "LINESTART":
 					line_stat = "LINEIN"
+
+			cur_token += 1
+
 		return result
 
 

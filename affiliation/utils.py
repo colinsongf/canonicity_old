@@ -65,4 +65,23 @@ def dehyphenize(text):
 
 def contain_chars(char_set, text):
 	return any(elem in text for elem in char_set)
-	
+
+def parse_country_codes(f):
+	countries = set()
+	country_codes = {}
+	from lxml import etree, objectify
+	parser = etree.XMLParser(remove_blank_text=True)
+	tree = etree.parse(f, parser)
+	root = tree.getroot()
+	for row in root.getchildren():
+		cole = ""
+		for cell in row.getchildren():
+			if cell.attrib["role"] == "a2code":
+				code = cell.text
+			elif cell.attrib["role"] == "name":
+				name = cell.text.lower()
+				country_codes[name] = code
+				countries.add(name)
+	return countries, country_codes
+
+
