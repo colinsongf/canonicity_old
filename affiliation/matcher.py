@@ -1,5 +1,5 @@
 import nltk
-
+from bs4 import UnicodeDammit
 class Matcher():
 	def __init__(self):
 		self.terms = {}
@@ -15,6 +15,7 @@ class Matcher():
 
 
 	def load_term(self, term):
+		term = UnicodeDammit(term).markup
 		tokens = nltk.word_tokenize(term)
 		cur_terms = self.terms
 		for tk in tokens:
@@ -35,6 +36,7 @@ class Matcher():
 		start_pos = []
 		last_non_separator_pos = []
 		current_pos = 0
+
 		tokens = nltk.word_tokenize(text)
 		t = []
 		for tk in tokens:
