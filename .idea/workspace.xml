@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="731bbf77-9bd7-4ea1-9d37-c17de77b8b16" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/disambiguation/aff.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/disambiguation/mmnet.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/disambiguation/model.py" afterPath="$PROJECT_DIR$/disambiguation/model.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/disambiguation/preprocess.py" afterPath="$PROJECT_DIR$/disambiguation/preprocess.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="canonicity.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -25,24 +29,46 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="preprocess.py" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/disambiguation/preprocess.py">
+      <file leaf-file-name="model.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/disambiguation/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.19271949" vertical-offset="945" max-vertical-offset="1605">
-              <caret line="69" column="0" selection-start-line="69" selection-start-column="0" selection-end-line="101" selection-end-column="0" />
+            <state vertical-scroll-proportion="-7.2" vertical-offset="0" max-vertical-offset="465">
+              <caret line="12" column="24" selection-start-line="12" selection-start-column="24" selection-end-line="12" selection-end-column="24" />
+              <folding>
+                <element signature="e#22#52#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="mmnet.py" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/disambiguation/mmnet.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.38543898" vertical-offset="0" max-vertical-offset="3075">
+              <caret line="12" column="3" selection-start-line="12" selection-start-column="3" selection-end-line="12" selection-end-column="3" />
+              <folding>
+                <element signature="e#519#556#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="aff.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/disambiguation/aff.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-4.848101" vertical-offset="787" max-vertical-offset="1260">
+              <caret line="78" column="33" selection-start-line="78" selection-start-column="33" selection-end-line="78" selection-end-column="33" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="model.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/disambiguation/model.py">
+      <file leaf-file-name="preprocess.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/disambiguation/preprocess.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-3.6" vertical-offset="0" max-vertical-offset="180">
-              <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-              <folding>
-                <element signature="e#22#35#0" expanded="true" />
-              </folding>
+            <state vertical-scroll-proportion="-1.2" vertical-offset="870" max-vertical-offset="1635">
+              <caret line="60" column="0" selection-start-line="60" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -83,8 +109,11 @@
     <option name="changedFiles">
       <list>
         <option value="$PROJECT_DIR$/minist/minist.py" />
-        <option value="$PROJECT_DIR$/disambiguation/model.py" />
         <option value="$PROJECT_DIR$/disambiguation/preprocess.py" />
+        <option value="$PROJECT_DIR$/disambiguation/aff.py" />
+        <option value="$PROJECT_DIR$/disambiguation/model.py" />
+        <option value="$PROJECT_DIR$/disambiguation/w2v.py" />
+        <option value="$PROJECT_DIR$/disambiguation/mmnet.py" />
       </list>
     </option>
   </component>
@@ -175,6 +204,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="data" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="canonicity" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="canonicity" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="affiliation" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -409,16 +452,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/disambiguation/model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.6" vertical-offset="0" max-vertical-offset="180">
-          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding>
-            <element signature="e#22#35#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/data/person_pub_data.json">
       <provider selected="true" editor-type-id="LargeFileEditor">
         <state />
@@ -426,9 +459,37 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/disambiguation/preprocess.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.19271949" vertical-offset="945" max-vertical-offset="1605">
-          <caret line="69" column="0" selection-start-line="69" selection-start-column="0" selection-end-line="101" selection-end-column="0" />
+        <state vertical-scroll-proportion="-1.2" vertical-offset="870" max-vertical-offset="1635">
+          <caret line="60" column="0" selection-start-line="60" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/disambiguation/aff.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.848101" vertical-offset="787" max-vertical-offset="1260">
+          <caret line="78" column="33" selection-start-line="78" selection-start-column="33" selection-end-line="78" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/disambiguation/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-7.2" vertical-offset="0" max-vertical-offset="465">
+          <caret line="12" column="24" selection-start-line="12" selection-start-column="24" selection-end-line="12" selection-end-column="24" />
+          <folding>
+            <element signature="e#22#52#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/disambiguation/mmnet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.38543898" vertical-offset="0" max-vertical-offset="3075">
+          <caret line="12" column="3" selection-start-line="12" selection-start-column="3" selection-end-line="12" selection-end-column="3" />
+          <folding>
+            <element signature="e#519#556#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

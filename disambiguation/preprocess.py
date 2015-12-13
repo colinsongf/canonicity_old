@@ -92,10 +92,12 @@ def get_vocab():
                 for w in word_tokenize(item["title"].lower()):
                     title_df[stemmer.stem(w)] += 1
                 if "venue" in item and "raw" in item["venue"]:
-                    for w in word_tokenize(item["venue"]["raw"]):
+                    for w in word_tokenize(item["venue"]["raw"].lower()):
                         venue_df[stemmer.stem(w)] += 1
                 if "authors" in item:
-                    for a in item:
-                        if "org" in a and len(a["org"]):
-                            for w in word_tokenize(a["org"]):
+                    for a in item["authors"]:
+                        if "org" in a and a["org"] and len(a["org"]):
+                            for w in word_tokenize(a["org"].lower()):
                                 aff_df[stemmer.stem(w)] += 1
+
+
