@@ -1,26 +1,55 @@
 __author__ = 'yutao'
 
-from keras.models import Graph
-from keras.layers.core import Dense, Dropout, Activation
+from keras.models import Sequential
+from keras.layers.embeddings import Embedding
+from keras.layers.core import Dense, Dropout, Activation, Merge
 from keras.optimizers import SGD
 
-model = Graph()
-# Dense(64) is a fully-connected layer with 64 hidden units.
-# in the first layer, you must specify the expected input data shape:
-# here, 20-dimensional vectors.
-model.add_input(name="input_author_attr", input_shape=1000)
-model.add_input(name="input_pub_attr", input_shape=1000)
-model.add_node(Dense(64, init='uniform'))
-model.add(Activation('tanh'))
-model.add(Dropout(0.5))
-model.add(Dense(64, init='uniform'))
-model.add(Activation('tanh'))
-model.add(Dropout(0.5))
-model.add(Dense(2, init='uniform'))
-model.add(Activation('softmax'))
 
-sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(loss='mean_squared_error', optimizer=sgd)
 
-model.fit(X_train, y_train, nb_epoch=20, batch_size=16)
-score = model.evaluate(X_test, y_test, batch_size=16)
+
+# author - paper pairs
+X_ap = []
+y_ap = []
+
+# author pairs
+X_aa = []
+y_aa = []
+
+embedding_dim = 100
+
+aff_vocab_size = 0
+# embed authors
+aff_encoder = Sequential()
+aff_encoder.add(Embedding(input_dim=aff_vocab_size,
+                            output_dim=100,
+                            input_length=100))
+
+title_encoder = Sequential()
+title_encoder.add(Embedding(input_dim=100,
+                            output_dim=100,
+                            input_length=100))
+
+venue_encoder = Sequential()
+title_encoder.add(Embedding(input_dim=100,
+                            output_dim=100,
+                            input_length=100))
+
+pub = Sequential()
+pub.add(Merge([venue_encoder, title_encoder], mode='sum'))
+
+author = Sequential()
+author.add(Merge([aff_encoder], mode='sum'))
+
+edge = Sequential()
+edge.add(Merge([pub, author]))
+
+
+
+match = Sequential()
+match.add(Merge([aff_encoder, title_encoder],
+                mode='dot',
+                dot_axes=[(2,), (2,)]))
+
+response = Sequential()
+response.add(Merge())

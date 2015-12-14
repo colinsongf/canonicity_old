@@ -68,6 +68,8 @@ def dupe_aff(aff_data):
     for (cluster_id, cluster) in enumerate(clustered_dupes):
         id_set, scores = cluster
         cluster_d = [data[c] for c in id_set]
+        for x in cluster_d:
+            x["id"] = str(x["id"])
         canonical_rep = dedupe.canonicalize(cluster_d)
         for record_id, score in zip(id_set, scores) :
             cluster_membership[record_id] = {
@@ -77,3 +79,9 @@ def dupe_aff(aff_data):
             }
     
     singleton_id = cluster_id + 1
+
+    clusters = []
+    for c in clustered_dupes:
+        clusters.append([data[k] for k in c[0]])
+
+    clusters = sorted(clusters, key=lambda x: len(x), reverse=True)
