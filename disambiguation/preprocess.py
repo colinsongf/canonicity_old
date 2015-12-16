@@ -151,19 +151,24 @@ def clean_data():
                     cnt += 1
         new_data.append(person)
 
-    cnt_a = 0
+    data = new_data
+
     cnt_p = 0
-    for d in new_data:
+    for d in data:
         for pub in d["pubs"]:
             pub["idx"] = cnt_p
             cnt_p += 1
+
+    cnt_a = cnt_p
+    for d in data:
+        for pub in d["pubs"]:
             for a in pub["authors"].values():
                 a["idx"] = cnt_a
                 cnt_a += 1
 
     import pickle
     with open("person_pub_data.pkl", "wb") as f_out:
-        pickle.dump(new_data, f_out)
+        pickle.dump(data, f_out)
 
 def get_data():
     from collections import defaultdict as dd
@@ -213,14 +218,21 @@ def get_data():
     with open("authors_map.pkl", "wb") as f_out:
         pickle.dump(authors_map, f_out)
 
-    pub_attr = [("", "") for i in range(5444)]
-    author_attr = [("", "") for i in range(19658)]
+    attr = [None for i in range(25102)]
     for d in data:
         for pub in d["pubs"]:
-            pub_attr[pub["idx"]] = (pub["title"], pub["venue"])
+            title, venue = pub["title"], pub["venue"]
+            if title:
+                title = [stemmer.stem(w) for w in word_tokenize(pub["title"].lower())]
+            if venue:
+                venue = [stemmer.stem(w) for w in word_tokenize(pub["venue"].lower())]
+            attr[pub["idx"]] = ("pub", title, venue)
             for a in pub["authors"].values():
-                author_attr[a["idx"]] = (a["name"], a["aff"])
-    with open("pub_attr.pkl", "wb") as f_out:
-        pickle.dump(pub_attr, f_out)
-    with open("author_attr.pkl", "wb") as f_out:
-        pickle.dump(author_attr, f_out)
+                name, aff = a["name"], a["aff"]
+                if name:
+                    name = [stemmer.stem(w) for w in word_tokenize(a["name"].lower())]
+                if aff:
+                    aff = [stemmer.stem(w) for w in word_tokenize(a["aff"].lower())]
+                attr[a["idx"]] = ("author", name, aff)
+    with open("attr.pkl", "wb") as f_out:
+        pickle.dump(attr, f_out)
