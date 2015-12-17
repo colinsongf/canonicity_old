@@ -40,8 +40,8 @@
           <file leaf-file-name="lasagne.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/disambiguation/lasagne.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.82883817">
-                  <caret line="223" column="32" selection-start-line="223" selection-start-column="32" selection-end-line="223" selection-end-column="32" />
+                <state vertical-scroll-proportion="0.56776947">
+                  <caret line="211" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="232" selection-end-column="13" />
                   <folding>
                     <element signature="e#22#36#0" expanded="true" />
                   </folding>
@@ -920,8 +920,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/disambiguation/lasagne.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.82883817">
-          <caret line="223" column="32" selection-start-line="223" selection-start-column="32" selection-end-line="223" selection-end-column="32" />
+        <state vertical-scroll-proportion="0.56776947">
+          <caret line="211" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="232" selection-end-column="13" />
           <folding>
             <element signature="e#22#36#0" expanded="true" />
           </folding>

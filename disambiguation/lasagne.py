@@ -156,14 +156,14 @@ def gen_graph_aa():
             i = j
 
 
-aff_var = sparse.csr_matrix('aff', dtype='int')
-title_var = sparse.csr_matrix('title', dtype='int')
-venue_var = sparse.csr_matrix('venue', dtype='int')
-pub_idx = T.vector("pub_idx")
-author_idx = T.vector("author_idx")
+aff_var = T.imatrix('aff')
+title_var = T.imatrix('title')
+venue_var = T.imatrix('venue')
+pub_idx = T.ivector("pub_idx")
+author_idx = T.ivector("author_idx")
 
-pairs = T.vector("pairs")
-pairs_y = T.vector("pairs_y")
+pairs = T.imatrix("pairs")
+pairs_y = T.ivector("pairs_y")
 
 aff_input_layer = lasagne.layers.InputLayer(shape=(None, len(aff_vocab)), input_var=aff_var)
 aff_input_layer = lasagne.layers.DenseLayer(aff_input_layer, embed_dim, nonlinearity=lasagne.nonlinearities.softmax)
@@ -179,17 +179,20 @@ embedding_layer_w = lasagne.layers.EmbeddingLayer(embedding_layer_w, input_size=
 embedding_layer_c = lasagne.layers.SliceLayer(pairs_input_layer, indices=1, axis=1)
 embedding_layer_c = lasagne.layers.EmbeddingLayer(embedding_layer_c, input_size=len(attr), output_size=embed_dim)
 
-embedding_layer_p = lasagne.layers.EmbeddingLayer(pub_idx, input_size=len(attr), output_size=embed_dim, W=embedding_layer_w.W)
-embedding_layer_a = lasagne.layers.EmbeddingLayer(author_idx, input_size=len(attr), output_size=embed_dim, W=embedding_layer_w.W)
+
+embedding_layer_p = lasagne.layers.InputLayer(shape=(None, ), input_var=pub_idx)
+embedding_layer_p = lasagne.layers.EmbeddingLayer(embedding_layer_p, input_size=len(attr), output_size=embed_dim, W=embedding_layer_w.W)
+embedding_layer_a = lasagne.layers.InputLayer(shape=(None, ), input_var=author_idx)
+embedding_layer_a = lasagne.layers.EmbeddingLayer(embedding_layer_a, input_size=len(attr), output_size=embed_dim, W=embedding_layer_w.W)
 
 feature_layer_a = aff_input_layer
 feature_layer_a = lasagne.layers.DenseLayer(feature_layer_a, len(attr), nonlinearity=lasagne.nonlinearities.softmax)
-feature_layer_p = lasagne.layers.ElemwiseMergeLayer([title_input_layer, venue_input_layer], T.sum)
+feature_layer_p = title_input_layer#lasagne.layers.ElemwiseMergeLayer([title_input_layer, venue_input_layer], T.sum)
 feature_layer_p = lasagne.layers.DenseLayer(feature_layer_p, len(attr), nonlinearity=lasagne.nonlinearities.softmax)
 
 feature_loss_a = lasagne.objectives.categorical_crossentropy(
         lasagne.layers.get_output(feature_layer_a),
-        lasagne.layers.get_output(embedding_layer_p)
+        lasagne.layers.get_output(embedding_layer_a)
 )
 
 feature_loss_p = lasagne.objectives.categorical_crossentropy(
@@ -202,7 +205,7 @@ graph_output = lasagne.layers.get_output(graph_output_layer)
 
 graph_loss = - T.log(T.nnet.sigmoid(T.sum(graph_output, axis=1) * pairs_y)).sum()
 
-graph_params = lasagne.layers.get_all_params(graph_output, trainable=True)
+graph_params = lasagne.layers.get_all_params(graph_output_layer, trainable=True)
 graph_updates = lasagne.updates.sgd(graph_loss, graph_params, learning_rate=0.1)
 
 train_graph = theano.function([pairs, pairs_y], graph_loss, updates=graph_updates, on_unused_input="warn")
