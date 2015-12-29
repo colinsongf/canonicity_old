@@ -2,7 +2,7 @@ __author__ = 'yutao'
 
 from keras.models import Sequential
 from keras.layers.embeddings import Embedding
-from keras.layers.core import Dense, Dropout, Activation, Merge, LambdaMerge, Lambda
+from keras.layers.core import Dense, Dropout, Activation, Merge, LambdaMerge, Lambda, Siamese
 from keras.models import Graph
 from keras.optimizers import SGD
 from keras.preprocessing.sequence import pad_sequences
@@ -148,6 +148,8 @@ model.add_node(Embedding(input_dim=len(pub_attr),
                          input_length=2,
                          initial_weight=),
                name="pub_embedding", input="pub_author_map")
+
+
 
 author_emb = Sequential()
 author_emb.add(Embedding(input_dim=len(author_attr),
