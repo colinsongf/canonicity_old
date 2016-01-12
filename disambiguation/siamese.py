@@ -81,30 +81,6 @@ node_attr_mapping: attributes of each node type
 attr_shape: original dimension of each attribute
 embedding_dim: dimension of the embedding space
 """
-
-def build_model(num_node, node_attr_mapping, attr_shape, embedding_dim=100):
-    shared_embedding = Sequential()
-    shared_embedding.add(Embedding(input_dim=num_node, output_dim=embedding_dim, input_length=2))
-
-    node_type_idx = {}
-    attr_type_idx = {}
-    num_node_type = 0
-    num_attr_type = 0
-    for n in node_attr_mapping:
-        node_type_idx[n] = num_node_type
-        num_node_type += 1
-        for a in node_attr_mapping[n]:
-            attr_type_idx[a] = num_attr_type
-            num_attr_type += 1
-
-    shared_layer = Sequential()
-    shared_layer.add(Embedding(input_dim=num_node, output_dim=embedding_dim, input_length=2))
-    for n in node_attr_mapping:
-        n0 = Sequential()
-        n0.add()
-
-
-
 def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_dim=100):
     node_type_idx = {}
     attr_type_idx = {}
