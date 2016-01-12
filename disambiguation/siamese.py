@@ -174,48 +174,6 @@ def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_
     model.compile('sgd', loss=dict(output_loss))
     return model
 
-
-def build_network(num_node, node_attr_mapping, attr_shape, embedding_dim=100):
-    node_type_idx = {}
-    attr_type_idx = {}
-    num_node_type = 0
-    num_attr_type = 0
-    for n in node_attr_mapping:
-        node_type_idx[n] = num_node_type
-        num_node_type += 1
-        for a in node_attr_mapping[n]:
-            attr_type_idx[a] = num_attr_type
-            num_attr_type += 1
-
-    output_loss = []
-
-    model = Graph()
-    model.add_input(name='edge_left', input_shape=(1,))
-    model.add_input(name='edge_right', input_shape=(1,))
-    for n in node_type_idx:
-        model.add_input(name='vertex_' + n, input_shape=(1,))
-    # model.add_node("NODE_vertex", embedding(input_dim=num_node, output_dim=embedding_dim, input_length=2))
-    model.add_shared_node(Embedding(input_dim=num_node, output_dim=embedding_dim, input_length=2),
-                          "embedding",
-                          inputs=['edge_left', 'edge_right'] + ["vertex_" + k for k in node_type_idx.keys()],
-                          outputs=['edge_left_embedding', 'edge_right_embedding'] + ["vertex_embedding_" + k for k in node_type_idx.keys()])
-    for a in attr_type_idx:
-        model.add_input("input_attr_"+a, input_shape=attr_shape[a])
-        model.add_node("NODE_attr_"+a, Dense(output_dim=embedding_dim), input="input_attr_"+a)
-    for n in node_attr_mapping:
-        for a in node_attr_mapping:
-            model.add_node()
-            model.add_output(name="out_attr_" + a + "_" + n,
-                 inputs=["vertex_embedding_" + n, "NODE_attr_" + a], merge_mode="dot")
-            output_loss.append(("out_attr_" + a + "_" + n, "binary_crossentropy"))
-
-    model.add_output(name="out_edge", inputs=["edge_left_embedding", "edge_right_embedding"], merge_mode="dot")
-    output_loss.append(("out_edge", "binary_crossentropy"))
-
-    model.compile('sgd', loss=dict(output_loss))
-    return model
-
-
 def gen_pair():
     num_names = 800000
     num_node = len(data)
