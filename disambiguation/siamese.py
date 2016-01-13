@@ -100,6 +100,10 @@ def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_
     Dummy = Lambda(dummy)
 
     model = Graph()
+
+    for i, n in enumerate(path_type):
+        for leg in ["left", "right"]:
+            model.add_input(name=leg + '_vertex_' + str(i), input_shape=(1,))
     # shared embedding
     model.add_shared_node(layer=Embedding(input_dim=num_node, output_dim=embedding_dim, input_length=1),
                           name="embedding_pivot",
@@ -111,8 +115,6 @@ def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_
                           outputs=[(leg + '_embeding_vertex_' + str(i)) for leg in ('left', 'right') for i in range(1, len(path_type))])
 
     for i, n in enumerate(path_type):
-        for leg in ["left", "right"]:
-            model.add_input(name=leg + '_vertex_' + str(i), input_shape=(1,))
         attr_layers = []
         for j, a in enumerate(node_attr_mapping[n]):
             for leg in ["left", "right"]:
@@ -228,7 +230,7 @@ def gen_batch():
     while True:
         input = dd(list)
         output = dd(list)
-        for i in range(batch_size):
+        for _ in range(batch_size):
             samples = sample_pair(num_names, num_node, neg_rate)
             if len(samples) == 0:
                 continue
@@ -238,13 +240,23 @@ def gen_batch():
                 for p in path_pairs:
                     output["output_alignment"].append(s[1])
                     for i, n in enumerate(p):
+                        # outputs
                         output["%s_output_edge_1" % legs[i]].append(n[3])
                         output["%s_output_edge_2" % legs[i]].append(n[4])
                         output["%s_output_vertex_0" % legs[i]].append(1)
                         output["%s_output_vertex_1" % legs[i]].append(1)
                         output["%s_output_vertex_2" % legs[i]].append(1)
 
-        yield samples
+                        # vertex index
+                        for k1 in range(3):
+                            input["%s_vertex_%s" % (legs[i], k1)].append(n[k1][0])
+
+                        # attribute feature vector
+                        for k1 in range(3):
+                            for k2 in range(1, len(n)):
+                                input["%s_input_attr_%s_%s" % (legs[i], k1, k2)].append(n[k1][k2])
+
+        yield input, output
 
 
 
