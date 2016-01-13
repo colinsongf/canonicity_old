@@ -110,7 +110,6 @@ def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_
                           inputs=[(leg + '_vertex_' + str(i)) for leg in ('left', 'right') for i in range(1, len(path_type))],
                           outputs=[(leg + '_embeding_vertex_' + str(i)) for leg in ('left', 'right') for i in range(1, len(path_type))])
 
-
     for i, n in enumerate(path_type):
         for leg in ["left", "right"]:
             model.add_input(name=leg + '_vertex_' + str(i), input_shape=(1,))
@@ -136,10 +135,10 @@ def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_
     # add local context loss
     for leg in ["left", "right"]:
         for i in range(1, len(path_type)):
-            model.add_output("%s_output_edge_%s_%s" % (leg, i-1, i),
-                             inputs=["%s_embeding_vertex_%s" % (leg, i-1), "%s_embeding_vertex_%s" % (leg, i)],
+            model.add_output("%s_output_edge_%s" % (leg, i),
+                             inputs=["%s_embeding_vertex_%s" % (leg, 0), "%s_embeding_vertex_%s" % (leg, i)],
                              merge_mode="dot")
-            output_loss.append(("%s_output_edge_%s_%s" % (leg, i-1, i), "binary_crossentropy"))
+            output_loss.append(("%s_output_edge_%s" % (leg, i), "binary_crossentropy"))
 
     # add alignment loss
     model.add_output("output_alignment",
@@ -150,41 +149,107 @@ def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_
     model.compile('sgd', loss=dict(output_loss))
     return model
 
-def gen_pair():
+
+def get_path(node, neg_rate, num_vertex):
+    pathes = []
+    pub = data[data[node]["p"]]
+    for a in pub["a"]:
+        if not a["i"] == data[node]["i"]:
+            path = ((node, data[node]['n'], data[node]["o"]),
+                    (pub["i"], pub["t"], pub["k"], pub["v"]),
+                    (a["i"], a["n"], a["o"]), 1, 1)
+            pathes.append(path)
+    for i in range(neg_rate):
+        idx = random.sample(num_vertex)
+        if "a" in data[idx]:
+            a_idx = random.sample(len(data["a"]))
+            path = ((node, data[node]['n'], data[node]["o"]),
+                    (data[idx]["i"], data[idx]["t"], data[idx]["k"], data[idx]["v"]),
+                    (data[idx]["a"][a_idx]["i"], data[idx]["a"][a_idx]["n"], data[idx]["a"][a_idx]["o"]),
+                    0, 0)
+            pathes.append(path)
+        else:
+            path = ((node, data[node]['n'], data[node]["o"]),
+                    (pub["i"], pub["t"], pub["k"], pub["v"]),
+                    (data[idx]["i"], data[idx]["n"], data[idx]["o"]),
+                    1, 0)
+            pathes.append(path)
+    return pathes
+
+
+def get_context_pair(pair):
+    pathes = []
+    for i, leg in enumerate(["left", "right"]):
+        pathes.append(get_path(pair[i], 10, 100))
+    path_pairs = []
+    for i, p1 in pathes[0]:
+        for j, p2 in pathes[1]:
+            path_pairs.append((p1, p2))
+    return path_pairs
+
+def sample_pair(num_names, num_node, neg_rate):
+    current_name = random.randint(num_names)
+    name = sorted_names[current_name]
+    pubs = name_to_idx[name]
+    if len(pubs) < 2:
+        return []
+    true_pair = tuple([data[k[0]]["a"][k[1]]["i"] for k in random.sample(name_to_idx[name], 2)])
+    samples = [(true_pair, 1)]
+    for i in [(0, 1), (1, 0)]:
+        for j in range(neg_rate):
+            idx = random.randint(num_node)
+            false_pair = [-1, -1]
+            false_pair[i[0]] = true_pair[i[0]]
+            if "a" in data[idx]:
+                false_pair[i[1]] = random.sample(data[idx]["a"], 1)["i"]
+            else:
+                false_pair[i[1]] = idx
+            samples.append((tuple(false_pair), 0))
+    return samples
+
+def get_batch(pairs, neg_rate):
+    for i in range(neg_rate):
+
+
+
+def train_batch(model, samples):
+    data = []
+    [get_context_path(s) for s in samples]
+    model.fit({
+
+    })
+
+
+def gen_batch():
     num_names = 800000
     num_node = len(data)
-    neg_sample = 10
+    neg_rate = 10
+    batch_size = 100
     while True:
-        current_name = random.randint(num_names)
-        name = sorted_names[current_name]
-        pubs = name_to_idx[name]
-        if len(pubs) < 2:
-            continue
-        true_pair = tuple([data[k[0]]["a"][k[1]]["i"] for k in random.sample(name_to_idx[name], 2)])
-        samples = [(true_pair, 1)]
-        for i in [(0, 1), (1, 0)]:
-            for j in range(neg_sample):
-                idx = random.randint(num_node)
-                false_pair = [-1, -1]
-                false_pair[i[0]] = true_pair[i[0]]
-                if "a" in data[idx]:
-                    false_pair[i[1]] = random.sample(data[idx]["a"], 1)["i"]
-                else:
-                    false_pair[i[1]] = idx
-                samples.append((tuple(false_pair), 0))
+        input = dd(list)
+        output = dd(list)
+        for i in range(batch_size):
+            samples = sample_pair(num_names, num_node, neg_rate)
+            if len(samples) == 0:
+                continue
+            for s in samples:
+                path_pairs = get_context_pair(s[0])
+                legs = ["left", "right"]
+                for p in path_pairs:
+                    output["output_alignment"].append(s[1])
+                    for i, n in enumerate(p):
+                        output["%s_output_edge_1" % legs[i]].append(n[3])
+                        output["%s_output_edge_2" % legs[i]].append(n[4])
+                        output["%s_output_vertex_0" % legs[i]].append(1)
+                        output["%s_output_vertex_1" % legs[i]].append(1)
+                        output["%s_output_vertex_2" % legs[i]].append(1)
+
         yield samples
 
-
-def train_model(model):
-    pass
 
 
 def get_context_graph(idx):
     graph = {}
-    # for n in node_attr_mapping:
-    #     graph["vertex_" + n] = []
-    #     for a in node_attr_mapping[n]:
-    #         graph["input_attr_" + a] = []
     graph["vertex_pub"] = [idx]
     graph["vertex_author"] = [a["i"] for a in data[idx]["a"]]
     graph["input_attr_name"] = []
