@@ -7,6 +7,12 @@ from keras.layers.core import initializations, activations
 from keras.layers.embeddings import Embedding
 from keras.models import Graph, Sequential
 from theano import tensor as T
+from keras import backend as K
+import logging
+
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 data = pickle.load(open("../data/person_pub_data.pkl", "rb"))
 sorted_names = pickle.load(open("sorted_names.pkl", "rb"))
@@ -74,6 +80,10 @@ class NodeContextProduct(Layer):
             "init": self.init.__name__,
             "activation": self.activation.__name__}
 
+class IntInput(Layer):
+    def build(self):
+        super(IntInput, self).build()
+        self.input = K.placeholder(self._input_shape, dtype='int32')
 
 """
 num_node: number of entity node to be embedded
@@ -103,7 +113,7 @@ def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_
 
     for i, n in enumerate(path_type):
         for leg in ["left", "right"]:
-            model.add_input(name=leg + '_vertex_' + str(i), input_shape=(1,))
+            model.add_input(name=leg + '_vertex_' + str(i), input_shape=(1,), dtype='int32')
     # shared embedding
     model.add_shared_node(layer=Embedding(input_dim=num_node, output_dim=embedding_dim, input_length=1),
                           name="embedding_pivot",
@@ -118,21 +128,27 @@ def build_network(num_node, path_type, node_attr_mapping, attr_shape, embedding_
         attr_layers = []
         for j, a in enumerate(node_attr_mapping[n]):
             for leg in ["left", "right"]:
-                model.add_input(name="%s_input_attr_%s_%s" % (leg, i, j), input_shape=attr_shape[a])
+                model.add_input(name="%s_input_attr_%s_%s" % (leg, i, j), input_shape=(attr_shape[a], ))
             model.add_shared_node(layer=Dense(output_dim=embedding_dim),
                                   name="encoder_attr_%s_%s" % (i, j),
                                   inputs=["%s_input_attr_%s_%s" % (leg, i, j) for leg in ["left", "right"]],
                                   outputs=["%s_encoded_attr_%s_%s" % (leg, i, j) for leg in ["left", "right"]])
             attr_layers.append("_encoded_attr_%s_%s" % (i, j))
+            for leg in ["left", "right"]:
+                model.add_output("%s_output_vertex_%s_%s" % (leg, i, j),
+                                 inputs=["%s_encoded_attr_%s_%s" % (leg, i, j), "%s_embeding_vertex_%s" % (leg, i)],
+                                 merge_mode="dot")
+                output_loss.append(("%s_output_vertex_%s_%s" % (leg, i, j), "binary_crossentropy"))
 
         # add vertex attributes loss
-        for leg in ["left", "right"]:
-            model.add_node(Dummy, name="embedding_attr_%s" % i,
-                           inputs=[leg+layer_name for layer_name in attr_layers], merge_mode="sum")
-            model.add_output("%s_output_vertex_%s" % (leg, i),
-                             inputs=["%s_embedding_attr_%s" % (leg, i), "%s_embeding_vertex_%s" % (leg, i)],
-                             merge_mode="dot")
-            output_loss.append(("%s_output_vertex_%s" % (leg, i), "binary_crossentropy"))
+    # for i, n in enumerate(path_type):
+    #     for leg in ["left", "right"]:
+    #         model.add_node(Dense(output_dim=embedding_dim), name="%s_embedding_attr_%s" % (leg, i),
+    #                        inputs=[leg+layer_name for layer_name in attr_layers], merge_mode="sum")
+    #         model.add_output("%s_output_vertex_%s" % (leg, i),
+    #                          inputs=["%s_embedding_attr_%s" % (leg, i), "%s_embeding_vertex_%s" % (leg, i)],
+    #                          merge_mode="dot")
+    #         output_loss.append(("%s_output_vertex_%s" % (leg, i), "binary_crossentropy"))
 
     # add local context loss
     for leg in ["left", "right"]:
@@ -189,6 +205,7 @@ def get_context_pair(pair):
             path_pairs.append((p1, p2))
     return path_pairs
 
+
 def sample_pair(num_names, num_node, neg_rate):
     current_name = random.randint(num_names)
     name = sorted_names[current_name]
@@ -209,18 +226,10 @@ def sample_pair(num_names, num_node, neg_rate):
             samples.append((tuple(false_pair), 0))
     return samples
 
-def get_batch(pairs, neg_rate):
-    for i in range(neg_rate):
-
-
-
-def train_batch(model, samples):
-    data = []
-    [get_context_path(s) for s in samples]
-    model.fit({
-
-    })
-
+vocab = pickle.load(open("vocab.pkl", "rb"))
+token_to_idx = pickle.load(open("token_to_idx.pkl", "rb"))
+idx_to_token = pickle.load(open("idx_to_token.pkl", "rb"))
+fvectors = pickle.load(open("fvectors.pkl", "rb"))
 
 def gen_batch():
     num_names = 800000
@@ -246,16 +255,13 @@ def gen_batch():
                         output["%s_output_vertex_0" % legs[i]].append(1)
                         output["%s_output_vertex_1" % legs[i]].append(1)
                         output["%s_output_vertex_2" % legs[i]].append(1)
-
                         # vertex index
                         for k1 in range(3):
                             input["%s_vertex_%s" % (legs[i], k1)].append(n[k1][0])
-
                         # attribute feature vector
                         for k1 in range(3):
                             for k2 in range(1, len(n)):
                                 input["%s_input_attr_%s_%s" % (legs[i], k1, k2)].append(n[k1][k2])
-
         yield input, output
 
 
@@ -274,11 +280,14 @@ def get_context_graph(idx):
 def run():
     num_node = len(data)
     node_attr_mapping = {
-        "pub": ["title", "venue"],
-        "author": ["name", "org"]
+        "pub": ["t", "v", "k"],
+        "author": ["n", "o"]
     }
-    model = build_network(num_node, node_attr_mapping)
-    for samples in gen_pair():
-        for pair, label in samples:
-            left = get_context_graph(pair[0])
-            right = get_context_graph(pair[1])
+    path_type = ["author", "pub", "author"]
+    attr_shape = {}
+    for t in ["n", "o", "t", "v", "k"]:
+        attr_shape[t] = fvectors[t].shape[1]
+    model = build_network(num_node, path_type, node_attr_mapping, attr_shape)
+    for input, output in gen_batch():
+        model.fit({"input": input, "output": output})
+

@@ -6,6 +6,8 @@ from nltk.stem.porter import PorterStemmer
 from pymongo import MongoClient
 from bson import ObjectId
 import pickle
+import numpy as np
+from scipy import sparse
 
 client = MongoClient('mongodb://yutao:911106zyt@yutao.us:30017/bigsci')
 db = client["bigsci"]
@@ -56,6 +58,10 @@ def get_uniqueness(segs, name):
     for k in name.split():
         score *= segs[k]
     return score
+
+from nltk import word_tokenize
+from nltk.stem.porter import PorterStemmer
+stemmer = PorterStemmer()
 
 
 def load_data():
@@ -117,6 +123,108 @@ def load_data():
     with open("name_to_idx.pkl", "wb") as f_out:
         pickle.dump(name_to_idx, f_out)
 
+    vocab = {}
+    for t in ["n", "o", "t", "v", "k"]:
+        vocab[t] = dd(int)
+
+    cnt = 0
+    for item in data.values():
+        if cnt % 10000 == 0:
+            print(cnt)
+        cnt += 1
+        if "a" in item:
+            for w in word_tokenize(item["t"].lower()):
+                sw = stemmer.stem(w)
+                vocab["t"][sw] += 1
+            for w in item["k"]:
+                sw = stemmer.stem(w.lower())
+                vocab["k"][sw] += 1
+            vocab["v"][item["v"].lower()] += 1
+        else:
+            vocab["n"][item["n"]] += 1
+            for w in word_tokenize(item["o"].lower()):
+                sw = stemmer.stem(w)
+                vocab["o"][sw] += 1
+
+
+    token_to_idx = {}
+    idx_to_token = {}
+    for t in vocab:
+        cnt = 0
+        token_to_idx[t] = {}
+        idx_to_token[t] = {}
+        for token in vocab[t]:
+            if vocab[t][token] > 1:
+                token_to_idx[t][token] = cnt
+                idx_to_token[t][cnt] = token
+                cnt += 1
+
+    with open("token_to_idx.pkl", "wb") as f_out:
+        pickle.dump(token_to_idx, f_out)
+
+    with open("idx_to_token.pkl", "wb") as f_out:
+        pickle.dump(idx_to_token, f_out)
+
+    with open("vocab.pkl", "wb") as f_out:
+        pickle.dump(vocab, f_out)
+
+    coordinate = {}
+    cell = {}
+    row = {}
+    col = {}
+    for t in ["n", "o", "t", "v", "k"]:
+        row[t] = []
+        col[t] = []
+        for r, c in coordinate[t]:
+            row[t].append(r)
+            col[t].append(c)
+        coordinate[t] = []
+        cell[t] = []
+
+    row = 0
+    for item in data.values():
+        if "a" in item:
+            for w in word_tokenize(item["t"].lower()):
+                sw = stemmer.stem(w)
+                if sw in token_to_idx["t"]:
+                    col = token_to_idx["t"][sw]
+                    coordinate["t"].append((row, col))
+                    cell["t"].append(.1 / vocab["t"][sw])
+            for w in item["k"]:
+                sw = stemmer.stem(w.lower())
+                if sw in token_to_idx["k"]:
+                    col = token_to_idx["k"][sw]
+                    coordinate["k"].append((row, col))
+                    cell["k"].append(.1 / vocab["k"][sw])
+            if item["v"].lower() in token_to_idx["v"]:
+                col = token_to_idx["v"][item["v"].lower()]
+                coordinate["v"].append((row, col))
+                cell["v"].append(.1 / vocab["v"][item["v"].lower()])
+        else:
+            if item["n"] in token_to_idx["n"]:
+                col = token_to_idx["n"][item["n"].lower()]
+                coordinate["n"].append((row, col))
+                cell["n"].append(.1 / vocab["n"][item["n"].lower()])
+            for w in word_tokenize(item["o"].lower()):
+                sw = stemmer.stem(w)
+                if sw in token_to_idx["o"]:
+                    col = token_to_idx["o"][sw]
+                    coordinate["o"].append((row, col))
+                    cell["o"].append(.1 / vocab["o"][sw])
+        row += 1
+        if row % 10000 == 0:
+            print(row)
+
+    from scipy import sparse
+    fvectors = {}
+    for t in ["n", "o", "t", "v", "k"]:
+        fvectors[t] = sparse.coo_matrix((cell[t], (row[t], col[t])),
+                                        shape=(len(data), len(idx_to_token[t])),
+                                        dtype=np.float32).tocsr()
+
+    with open("fvectors.pkl", "wb") as f_out:
+        pickle.dump(fvectors, f_out)
+
 
 
 def plot_name(scores):
@@ -142,4 +250,3 @@ def plot_name(scores):
 
     plt.show()
 
-def text_process(data):
