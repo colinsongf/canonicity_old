@@ -142,7 +142,11 @@ class Canonicity:
                     for _ in range(self.neg_rate):
                         g.append((clique[0][0], random.randint(self.num_nodes)))
                         gy.append(-1.0)
-                yield g, gy, x, y, ind
+                yield (np.array(g, dtype=np.int32),
+                       np.array(gy, dtype=np.int32),
+                       sparse.vstack(x),
+                       np.array(y, dtype=np.int32),
+                       np.array(ind, dtype=np.int32))
 
 
 
