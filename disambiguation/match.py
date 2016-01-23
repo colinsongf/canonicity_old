@@ -11,7 +11,7 @@ profiles = dd(lambda: dd(int))
 
 db2 = MongoClient(host='yutao.yt', port=30017).bigsci
 db2.authenticate('kegger_bigsci', 'datiantian123!@#')
-people_col2 = db["people"]
+people_col2 = db2["people"]
 
 item = people_col2.find_one({"_id": ObjectId("53f46a3edabfaee43ed05f08")})
 
@@ -97,3 +97,32 @@ dup = []
 for n in nsfc:
     if len(nsfc[n]) > 1:
         dup.append(n)
+
+
+# 0 5
+# 5 10
+# 10 20
+cnt = 0
+data = {}
+for item in people_col.find():
+    if cnt % 10000 == 0:
+        print(cnt)
+    cnt += 1
+    if "nsfc_id" in item:
+        data[int(item["nsfc_id"])] = len(item["pubs"])
+
+cnt = 0
+cnt2 = 0
+for item in people_col2.find():
+    if cnt % 1000 == 0:
+        print(cnt, cnt2)
+    cnt += 1
+    if "aff" in item:
+        if "ins" in item["aff"] and len(item["aff"]["ins"]):
+            obj = people_col.find_one({"_id": item["_id"]})
+            if obj is None:
+                continue
+            obj["ins"] = item["aff"]["ins"]
+            # print(obj)
+            people_col.save(obj)
+            cnt2 += 1

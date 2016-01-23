@@ -123,6 +123,9 @@ def load_data():
     with open("name_to_idx.pkl", "wb") as f_out:
         pickle.dump(name_to_idx, f_out)
 
+    with open("id_to_idx.pkl", "wb") as f_out:
+        pickle.dump(id_to_idx, f_out)
+
     vocab = {}
     for t in ["n", "o", "t", "v", "k"]:
         vocab[t] = dd(int)
