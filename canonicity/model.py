@@ -28,9 +28,9 @@ class Canonicity:
         self.learning_rate = args.learning_rate
         self.neg_rate = args.neg_rate
         self.embedding = None
-        self.graph_fn = None
+        # self.graph_fn = None
         self.attr_fn = {}
-        self.anchor_fn = {}
+        # self.anchor_fn = None
         self.g_learning_rate = 0.1
         self.anchors = []
         self.features = None
@@ -102,16 +102,18 @@ class Canonicity:
         # self.x_sym, self.y_sym, self.ind_sym = x_sym, y_sym, ind_sym
 
     def get_feature(self, n):
-        x, y, ind = [], [], []
-        x.append(self.features[n])
+        x, y, ind, t = [], [], [], []
+        x.append(self.features[n[1]][n[0]])
         y.append(1.0)
-        ind.append(n)
+        ind.append(n[0])
+        t.append(n[1])
         for _ in range(self.neg_rate):
             m = random.randint(self.num_nodes)
-            x.append(self.features[n])
+            x.append(self.features[n[1]][n])
             y.append(-1.0)
             ind.append(m)
-        return x, y, ind
+            t.append(n[1])
+        return x, y, ind, t
 
     def gen_context_graph(self):
         while True:
@@ -131,9 +133,9 @@ class Canonicity:
                     for a in p["a"]:
                         if a["i"] != pivot_node["i"]:
                             clique.append((a["i"], "a"))
-                x, y, ind = self.get_feature(clique[0])
+                x, y, ind, t = self.get_feature(clique[0])
                 for n in clique[1:]:
-                    x_, y_, ind_ = self.get_feature(n)
+                    x_, y_, ind_, t = self.get_feature(n)
                     x += x_
                     y += y_
                     ind += ind_
@@ -144,11 +146,10 @@ class Canonicity:
                         gy.append(-1.0)
                 yield (np.array(g, dtype=np.int32),
                        np.array(gy, dtype=np.int32),
-                       sparse.vstack(x),
+                       x,
                        np.array(y, dtype=np.int32),
-                       np.array(ind, dtype=np.int32))
-
-
+                       np.array(ind, dtype=np.int32),
+                       t)
 
     def gen_anchor(self):
         while True:
@@ -168,104 +169,11 @@ class Canonicity:
         max_acc = 0.0
 
         while True:
+            g, gy, x, y, ind, t = next(self.gen_context_graph())
+            loss = self.graph_fn(g, gy)
+            for i, a in enumerate(t):
+                loss = self.attr_fn[a](x[i], y[i], idx[i])
+            for _ in range(10):
+                anchor, anchor_y = next(self.gen_anchor())
+                loss = self.anchor_fn(anchor, anchor_y)
 
-
-def sample_anchor(num_names, num_node, neg_rate):
-    current_name = random.randint(0, num_names - 1)
-    name = sorted_names[current_name]
-    pubs = name_to_idx[name]
-    if len(pubs) < 2:
-        return []
-    true_pair = tuple([data[k[0]]["a"][k[1]]["i"] for k in random.sample(name_to_idx[name], 2)])
-    samples = [(true_pair, 1)]
-    for i in [(0, 1), (1, 0)]:
-        for j in range(neg_rate):
-            idx = random.randint(0, num_node - 1)
-            false_pair = [-1, -1]
-            false_pair[i[0]] = true_pair[i[0]]
-            if "a" in data[idx]:
-                if len(data[idx]["a"]) == 0:
-                    continue
-                false_pair[i[1]] = random.sample(data[idx]["a"], 1)[0]["i"]
-            else:
-                false_pair[i[1]] = idx
-            samples.append((tuple(false_pair), 0))
-    return samples
-
-
-def get_path(node, neg_rate, num_vertex):
-    pathes = []
-    pub = data[data[node]["p"]]
-    for a in pub["a"]:
-        if not a["i"] == data[node]["i"]:
-            path = ((node, fvectors['n'][node], fvectors['o'][node]),
-                    (pub["i"], fvectors['t'][pub['i']], fvectors['k'][pub['i']], fvectors['v'][pub['i']]),
-                    (a['i'], fvectors['n'][a['i']], fvectors['o'][a['i']]), 1, 1)
-            pathes.append(path)
-    for i in range(neg_rate):
-        idx = random.randint(0, num_vertex - 1)
-        if "a" in data[idx]:
-            if len(data[idx]["a"]) == 0:
-                continue
-            a_idx = random.randint(0, len(data[idx]["a"]) - 1)
-            p_id = data[idx]["i"]
-            a_id = data[idx]["a"][a_idx]["i"]
-            path = ((node, fvectors['n'][node], fvectors["o"][node]),
-                    (p_id, fvectors["t"][p_id], fvectors["k"][p_id], fvectors["v"][p_id]),
-                    (a_id, fvectors["n"][a_id], fvectors["o"][a_id]),
-                    0, 0)
-            pathes.append(path)
-        else:
-            p_id = pub["i"]
-            a_id = data[idx]["i"]
-            path = ((node, fvectors['n'][node], fvectors["o"][node]),
-                    (p_id, fvectors["t"][p_id], fvectors["k"][p_id], fvectors["v"][p_id]),
-                    (a_id, fvectors["n"][a_id], fvectors["o"][a_id]),
-                    1, 0)
-            pathes.append(path)
-    return pathes
-
-
-def get_context_pair(pair):
-    pathes = []
-    for i, leg in enumerate(["left", "right"]):
-        pathes.append(get_path(pair[i], 10, 100))
-    path_pairs = []
-    for p1 in pathes[0]:
-        for p2 in pathes[1]:
-            path_pairs.append((p1, p2))
-    return path_pairs
-
-
-def gen_batch():
-    num_names = 800000
-    num_node = len(data)
-    neg_rate = 10
-    batch_size = 1
-    while True:
-        instances = dd(list)
-        for _ in range(batch_size):
-            samples = sample_pair(num_names, num_node, neg_rate)
-            if len(samples) == 0:
-                continue
-            for s in samples:
-                path_pairs = get_context_pair(s[0])
-                legs = ["left", "right"]
-                for p in path_pairs:
-                    instances["output_alignment"].append(s[1])
-                    for i, n in enumerate(p):
-                        # outputs
-                        instances["%s_output_edge_1" % legs[i]].append(n[3])
-                        instances["%s_output_edge_2" % legs[i]].append(n[4])
-
-                        # vertex index
-                        for k1 in range(3):
-                            instances["%s_vertex_%s" % (legs[i], k1)].append(np.array(n[k1][0]))
-                        # attribute feature vector
-                        for k1 in range(3):
-                            for k2 in range(1, len(n[k1])):
-                                instances["%s_input_attr_%s_%s" % (legs[i], k1, k2 - 1)].append(n[k1][k2])
-                                instances["%s_output_vertex_%s_%s" % (legs[i], k1, k2 - 1)].append(1)
-        for k in instances:
-            instances[k] = sparse.vstack(instances[k]).toarray()
-        yield instances
