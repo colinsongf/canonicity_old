@@ -27,6 +27,7 @@ class Canonicity:
         self.g_learning_rate = 0.1
         self.anchors = anchors
         self.features = features
+        self.batch_size = 100
         np.random.seed(1)
         random.seed(1)
 
@@ -114,6 +115,7 @@ class Canonicity:
         while True:
             idx = np.random.permutation(self.num_nodes)
             for i in range(idx.shape[0]):
+                print(i, idx[i])
                 g, gy = [], []
                 pivot_node = self.data[idx[i]]
                 clique = []
@@ -139,6 +141,7 @@ class Canonicity:
                     for _ in range(self.neg_rate):
                         g.append((clique[0][0], random.randint(0, self.num_nodes)))
                         gy.append(-1.0)
+                print("f")
                 yield (np.array(g, dtype=np.int32),
                        np.array(gy, dtype=np.int32),
                        x,
@@ -166,8 +169,11 @@ class Canonicity:
         while True:
             g, gy, x, y, ind, t = next(self.gen_context_graph())
             loss = self.graph_fn(g, gy)
+            print(loss)
             for i, a in enumerate(t):
                 loss = self.attr_fn[a](x[i], [y[i]], [ind[i]])
+                print(loss)
             for _ in range(10):
                 anchor, anchor_y = next(self.gen_anchor())
                 loss = self.anchor_fn(anchor, anchor_y)
+                print(loss)
