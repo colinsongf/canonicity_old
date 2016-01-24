@@ -9,16 +9,7 @@ from theano import sparse
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-import pickle
-from collections import defaultdict as dd
-#
-# data = pickle.load(open("../data/person_pub_data.pkl", "rb"))
-# sorted_names = pickle.load(open("sorted_names.pkl", "rb"))
-# name_to_idx = pickle.load(open("name_to_idx.pkl", "rb"))
-# vocab = pickle.load(open("vocab.pkl", "rb"))
-# token_to_idx = pickle.load(open("token_to_idx.pkl", "rb"))
-# idx_to_token = pickle.load(open("idx_to_token.pkl", "rb"))
-# fvectors = pickle.load(open("fvectors.pkl", "rb"))
+
 
 class Canonicity:
     def __init__(self, args, schema, data, features, anchors):
@@ -81,7 +72,8 @@ class Canonicity:
             attr_loss[n] = -T.log(T.nnet.sigmoid(T.sum(pay_sym, axis=1) * y_sym)).sum()
             attr_params = lasagne.layers.get_all_params(l_ay, trainable=True)
             attr_updates = lasagne.updates.sgd(attr_loss[n], attr_params, learning_rate=self.g_learning_rate)
-            self.attr_fn[n] = theano.function([x_sym[n], y_sym, ind_sym], attr_loss[n], updates=attr_updates, on_unused_input='warn')
+            self.attr_fn[n] = theano.function([x_sym[n], y_sym, ind_sym], attr_loss[n], updates=attr_updates,
+                                              on_unused_input='warn')
 
         # alignment
         anchor_sym = T.imatrix('anchor')
@@ -98,7 +90,8 @@ class Canonicity:
         anchor_loss = -T.log(T.nnet.sigmoid(T.sum(p_anchor_y_sym, axis=1) * anchor_y_sym)).sum()
         anchor_params = lasagne.layers.get_all_params(l_anchor_y, trainable=True)
         anchor_updates = lasagne.updates.sgd(anchor_loss, anchor_params, learning_rate=self.g_learning_rate)
-        self.anchor_fn = theano.function([anchor_sym, anchor_y_sym], g_loss, updates=anchor_updates, on_unused_input='warn')
+        self.anchor_fn = theano.function([anchor_sym, anchor_y_sym], g_loss, updates=anchor_updates,
+                                         on_unused_input='warn')
 
         # self.x_sym, self.y_sym, self.ind_sym = x_sym, y_sym, ind_sym
 
@@ -137,8 +130,8 @@ class Canonicity:
                 x, y, ind, t = self.get_feature(clique[0])
                 for n in clique[1:]:
                     x_, y_, ind_, t = self.get_feature(n)
-                    x += x_
-                    y += y_
+                    x = x + x_
+                    y = y + y_
                     ind += ind_
                     g.append((clique[0][0], n[0]))
                     gy.append(1.0)
@@ -177,4 +170,3 @@ class Canonicity:
             for _ in range(10):
                 anchor, anchor_y = next(self.gen_anchor())
                 loss = self.anchor_fn(anchor, anchor_y)
-
