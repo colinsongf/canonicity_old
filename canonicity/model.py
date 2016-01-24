@@ -103,7 +103,7 @@ class Canonicity:
         ind.append(n[0])
         t.append(n[1])
         for _ in range(self.neg_rate):
-            m = random.randint(self.num_nodes)
+            m = random.randint(0, self.num_nodes)
             x.append(self.features[n[1]][n])
             y.append(-1.0)
             ind.append(m)
@@ -137,7 +137,7 @@ class Canonicity:
                     g.append((clique[0][0], n[0]))
                     gy.append(1.0)
                     for _ in range(self.neg_rate):
-                        g.append((clique[0][0], random.randint(self.num_nodes)))
+                        g.append((clique[0][0], random.randint(0, self.num_nodes)))
                         gy.append(-1.0)
                 yield (np.array(g, dtype=np.int32),
                        np.array(gy, dtype=np.int32),
@@ -154,7 +154,7 @@ class Canonicity:
                 anchor.append(self.anchors[i])
                 anchor_y.append(1.0)
                 for _ in range(self.neg_rate):
-                    anchor.append((self.anchors[i][0], random.randint(self.num_nodes)))
+                    anchor.append((self.anchors[i][0], random.randint(0, self.num_nodes)))
                     anchor_y.append(-1.0)
                 yield np.array(anchor, dtype=np.int32), np.array(anchor_y, dtype=np.int32)
 
