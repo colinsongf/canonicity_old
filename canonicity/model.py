@@ -118,7 +118,7 @@ class Canonicity:
 
     def gen_context_graph(self):
         while True:
-            idx = np.random.permutation(self.num_nodes)
+            idx = np.random.permutation(len(self.data))
             for i in range(idx.shape[0]):
                 print(i, idx[i])
                 g, gy = [], []
@@ -184,8 +184,9 @@ class Canonicity:
 
         while True:
             g, gy, x, y, ind, t = next(self.gen_context_graph())
-            loss = self.graph_fn(g, gy)
-            print(loss)
+            if len(g) > 0:
+                loss = self.graph_fn(g, gy)
+                print(loss)
             for i, a in enumerate(t):
                 loss = self.attr_fn[a](x[i], [y[i]], [ind[i]])
                 print(loss)

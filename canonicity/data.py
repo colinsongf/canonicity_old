@@ -128,8 +128,8 @@ def gen_feature():
                                         dtype=np.float32).tocsr()
 
     features = {
-        "a": sparse.hstack([fvectors[k] for k in ["t", "k", "v", "p_n"]]).tocsr(),
-        "p": sparse.hstack([fvectors[k] for k in ["o", "a_n"]]).tocsr()
+        "p": sparse.hstack([fvectors[k] for k in ["t", "k", "v", "p_n"]]).tocsr(),
+        "a": sparse.hstack([fvectors[k] for k in ["o", "a_n"]]).tocsr()
     }
 
     with open("features_hashed.pkl", "wb") as f_out:
