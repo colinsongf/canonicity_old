@@ -137,10 +137,11 @@ class Canonicity:
                             clique.append((a["i"], "a"))
                 x, y, ind, t = self.get_feature(clique[0])
                 for n in clique[1:]:
-                    x_, y_, ind_, t = self.get_feature(n)
+                    x_, y_, ind_, t_ = self.get_feature(n)
                     x = x + x_
                     y = y + y_
                     ind += ind_
+                    y += t_
                     g.append((clique[0][0], n[0]))
                     gy.append(1.0)
                     for _ in range(self.neg_rate):
@@ -195,5 +196,5 @@ class Canonicity:
                 a, b = next(self.gen_anchor())
                 anchor.append(a)
                 anchor_y.append(b)
-            loss = self.anchor_fn(np.vstack(anchor), np.vstack(anchor_y))
+            loss = self.anchor_fn(np.vstack(anchor), np.hstack(anchor_y))
             print(loss)
