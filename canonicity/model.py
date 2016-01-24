@@ -127,7 +127,7 @@ class Canonicity:
                 if "a" in pivot_node:
                     clique.append((pivot_node["i"], "p"))
                     for a in pivot_node["a"]:
-                        clique.append((a["i"], "p"))
+                        clique.append((a["i"], "a"))
                 else:
                     clique.append((pivot_node["i"], "a"))
                     p = self.data[pivot_node["p"]]
@@ -189,7 +189,10 @@ class Canonicity:
             for i, a in enumerate(t):
                 loss = self.attr_fn[a](x[i], [y[i]], [ind[i]])
                 print(loss)
+            anchor, anchor_y = [], []
             for _ in range(10):
-                anchor, anchor_y = next(self.gen_anchor())
-                loss = self.anchor_fn(anchor, anchor_y)
-                print(loss)
+                a, b = next(self.gen_anchor())
+                anchor.append(a)
+                anchor_y.append(b)
+            loss = self.anchor_fn(np.vstack(anchor), np.vstack(anchor_y))
+            print(loss)
