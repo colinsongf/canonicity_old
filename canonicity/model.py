@@ -115,7 +115,7 @@ class Canonicity:
             idx = np.random.permutation(self.num_nodes)
             for i in range(idx.shape[0]):
                 g, gy = [], []
-                pivot_node = self.data[i]
+                pivot_node = self.data[idx[i]]
                 clique = []
                 if "a" in pivot_node:
                     clique.append((pivot_node["i"], "p"))
