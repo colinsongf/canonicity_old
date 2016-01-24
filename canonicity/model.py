@@ -104,7 +104,7 @@ class Canonicity:
         t.append(n[1])
         for _ in range(self.neg_rate):
             m = random.randint(0, self.num_nodes)
-            x.append(self.features[n[1]][n])
+            x.append(self.features[n[1]][n[0]])
             y.append(-1.0)
             ind.append(m)
             t.append(n[1])
