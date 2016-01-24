@@ -117,7 +117,7 @@ def load_data():
     with open("sorted_names.pkl", "wb") as f_out:
         pickle.dump(sorted_names, f_out)
 
-    with open("dblp_data.pkl", "wb") as f_out:
+    with open("dblp_data_new.pkl", "wb") as f_out:
         pickle.dump(data, f_out)
 
     with open("name_to_idx.pkl", "wb") as f_out:

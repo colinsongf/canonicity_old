@@ -11,19 +11,19 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 import pickle
 from collections import defaultdict as dd
-
-data = pickle.load(open("../data/person_pub_data.pkl", "rb"))
-sorted_names = pickle.load(open("sorted_names.pkl", "rb"))
-name_to_idx = pickle.load(open("name_to_idx.pkl", "rb"))
-vocab = pickle.load(open("vocab.pkl", "rb"))
-token_to_idx = pickle.load(open("token_to_idx.pkl", "rb"))
-idx_to_token = pickle.load(open("idx_to_token.pkl", "rb"))
-fvectors = pickle.load(open("fvectors.pkl", "rb"))
+#
+# data = pickle.load(open("../data/person_pub_data.pkl", "rb"))
+# sorted_names = pickle.load(open("sorted_names.pkl", "rb"))
+# name_to_idx = pickle.load(open("name_to_idx.pkl", "rb"))
+# vocab = pickle.load(open("vocab.pkl", "rb"))
+# token_to_idx = pickle.load(open("token_to_idx.pkl", "rb"))
+# idx_to_token = pickle.load(open("idx_to_token.pkl", "rb"))
+# fvectors = pickle.load(open("fvectors.pkl", "rb"))
 
 class Canonicity:
-    def __init__(self, args):
-        self.schema = args.schema
-        self.num_nodes = self.schema["num_nodes"]
+    def __init__(self, args, schema, data, features, anchors):
+        self.schema = schema
+        self.num_nodes = len(data)
         self.embedding_dim = args.embedding_dim
         self.learning_rate = args.learning_rate
         self.neg_rate = args.neg_rate
@@ -31,9 +31,10 @@ class Canonicity:
         # self.graph_fn = None
         self.attr_fn = {}
         # self.anchor_fn = None
+        self.data = data
         self.g_learning_rate = 0.1
-        self.anchors = []
-        self.features = None
+        self.anchors = anchors
+        self.features = features
         np.random.seed(1)
         random.seed(1)
 
@@ -73,7 +74,7 @@ class Canonicity:
         attr_loss = {}
         for n in self.schema["nodes"]:
             x_sym[n] = sparse.csr_matrix(n, dtype='float32')
-            l_x_in[n] = lasagne.layers.InputLayer(shape=(None, self.schema["shape"][n]), input_var=x_sym[n])
+            l_x_in[n] = lasagne.layers.InputLayer(shape=(None, self.schema["nodes"][n]), input_var=x_sym[n])
             l_x_hid[n] = lasagne.layers.DenseLayer(l_x_in[n], self.embedding_dim)
             l_ay = lasagne.layers.ElemwiseMergeLayer([l_x_hid, l_emb_f], T.mul)
             pay_sym = lasagne.layers.get_output(l_ay)
@@ -120,7 +121,7 @@ class Canonicity:
             idx = np.random.permutation(self.num_nodes)
             for i in range(idx.shape[0]):
                 g, gy = [], []
-                pivot_node = data[i]
+                pivot_node = self.data[i]
                 clique = []
                 if "a" in pivot_node:
                     clique.append((pivot_node["i"], "p"))
@@ -128,7 +129,7 @@ class Canonicity:
                         clique.append((a["i"], "a"))
                 else:
                     clique.append((pivot_node["i"], "a"))
-                    p = data[pivot_node["p"]]
+                    p = self.data[pivot_node["p"]]
                     clique.append((p["i"], "p"))
                     for a in p["a"]:
                         if a["i"] != pivot_node["i"]:
@@ -172,7 +173,7 @@ class Canonicity:
             g, gy, x, y, ind, t = next(self.gen_context_graph())
             loss = self.graph_fn(g, gy)
             for i, a in enumerate(t):
-                loss = self.attr_fn[a](x[i], y[i], idx[i])
+                loss = self.attr_fn[a](x[i], y[i], ind[i])
             for _ in range(10):
                 anchor, anchor_y = next(self.gen_anchor())
                 loss = self.anchor_fn(anchor, anchor_y)
