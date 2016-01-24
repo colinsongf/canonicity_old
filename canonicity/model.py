@@ -141,7 +141,7 @@ class Canonicity:
                     x = x + x_
                     y = y + y_
                     ind += ind_
-                    y += t_
+                    t += t_
                     g.append((clique[0][0], n[0]))
                     gy.append(1.0)
                     for _ in range(self.neg_rate):
