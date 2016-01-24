@@ -20,3 +20,4 @@ if __name__ == '__main__':
 
     model = Canonicity(args, schema, data, features, anchors)
     model.build()
+    model.train()

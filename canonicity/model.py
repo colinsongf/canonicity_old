@@ -60,7 +60,7 @@ class Canonicity:
         l_emb_f = lasagne.layers.EmbeddingLayer(l_ind_in, input_size=self.num_nodes,
                                                 output_size=self.embedding_dim, W=self.embedding)
         x_sym = {}
-        y_sym = T.imatrix('y')
+        y_sym = T.vector('y')
         l_x_in = {}
         l_x_hid = {}
         attr_loss = {}
