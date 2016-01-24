@@ -171,6 +171,10 @@ class Canonicity:
                 for _ in range(self.neg_rate):
                     anchor.append((self.anchors[i][0], random.randint(0, self.num_nodes)))
                     anchor_y.append(-1.0)
+                anchor_ = []
+                if self.hashing_size > 0:
+                    for row in anchor:
+                        anchor_.append((row[0] % self.hashing_size, row[1] % self.hashing_size))
                 yield np.array(anchor, dtype=np.int32), np.array(anchor_y, dtype=np.int32)
 
     def train(self):
