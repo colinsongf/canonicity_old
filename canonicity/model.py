@@ -146,18 +146,19 @@ class Canonicity:
                     for _ in range(self.neg_rate):
                         g.append((clique[0][0], random.randint(0, self.num_nodes)))
                         gy.append(-1.0)
+                g_ = []
+                ind_ = []
                 if self.hashing_size > 0:
                     for row in g:
-                        row[0] %= self.hashing_size
-                        row[1] %= self.hashing_size
+                        g_.append((row[0] % self.hashing_size, row[1] % self.hashing_size))
                     for row in ind:
-                        row %= self.hashing_size
+                        ind_.append(row % self.hashing_size)
 
-                yield (np.array(g, dtype=np.int32),
+                yield (np.array(g_, dtype=np.int32),
                        np.array(gy, dtype=np.int32),
                        x,
                        np.array(y, dtype=np.int32),
-                       np.array(ind, dtype=np.int32),
+                       np.array(ind_, dtype=np.int32),
                        t)
 
     def gen_anchor(self):
