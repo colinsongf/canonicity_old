@@ -66,7 +66,7 @@ class Canonicity:
         attr_loss = {}
         for n in self.schema["nodes"]:
             x_sym[n] = sparse.csr_matrix(n, dtype='float32')
-            l_x_in[n] = lasagne.layers.InputLayer(shape=(None, self.schema["nodes"][n]), input_var=x_sym[n])
+            l_x_in[n] = lasagne.layers.InputLayer(shape=(None, xself.schema["nodes"][n]), input_var=x_sym[n])
             l_x_hid[n] = layers.SparseLayer(l_x_in[n], self.embedding_dim)
             l_ay = lasagne.layers.ElemwiseMergeLayer([l_x_hid[n], l_emb_f], T.mul)
             pay_sym = lasagne.layers.get_output(l_ay)
@@ -120,7 +120,7 @@ class Canonicity:
                 if "a" in pivot_node:
                     clique.append((pivot_node["i"], "p"))
                     for a in pivot_node["a"]:
-                        clique.append((a["i"], "a"))
+                        clique.append((a["i"], "p"))
                 else:
                     clique.append((pivot_node["i"], "a"))
                     p = self.data[pivot_node["p"]]
@@ -167,7 +167,7 @@ class Canonicity:
             g, gy, x, y, ind, t = next(self.gen_context_graph())
             loss = self.graph_fn(g, gy)
             for i, a in enumerate(t):
-                loss = self.attr_fn[a](x[i], y[i], ind[i])
+                loss = self.attr_fn[a](x[i], [y[i]], [ind[i]])
             for _ in range(10):
                 anchor, anchor_y = next(self.gen_anchor())
                 loss = self.anchor_fn(anchor, anchor_y)
