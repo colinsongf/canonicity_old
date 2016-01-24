@@ -15,9 +15,9 @@ logger.setLevel(logging.DEBUG)
 
 
 class Canonicity:
-    def __init__(self, args, schema, data, features, anchors):
+    def __init__(self, args, schema, data, features, anchors, hashing_size):
         self.schema = schema
-        self.hashing_size = 0
+        self.hashing_size = hashing_size
         self.num_nodes = len(data)
         if self.hashing_size > 0:
             self.num_nodes = self.hashing_size

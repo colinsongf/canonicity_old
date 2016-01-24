@@ -9,7 +9,7 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', type=int, default=0.1)
     args = parser.parse_args()
 
-    features = pickle.load(open("data/features.pkl", "rb"))
+    features = pickle.load(open("data/features_hashed.pkl", "rb"))
     anchors = pickle.load(open("data/anchors.pkl", "rb"))
     data = pickle.load(open("data/dblp_data_new.pkl", "rb"))
     schema = {
@@ -18,6 +18,6 @@ if __name__ == '__main__':
     for n in features:
         schema["nodes"][n] = features[n].shape[1]
 
-    model = Canonicity(args, schema, data, features, anchors)
+    model = Canonicity(args, schema, data, features, anchors, 10000)
     model.build()
     model.train()
