@@ -175,7 +175,7 @@ class Canonicity:
                 if self.hashing_size > 0:
                     for row in anchor:
                         anchor_.append((row[0] % self.hashing_size, row[1] % self.hashing_size))
-                yield np.array(anchor, dtype=np.int32), np.array(anchor_y, dtype=np.int32)
+                yield np.array(anchor_, dtype=np.int32), np.array(anchor_y, dtype=np.int32)
 
     def train(self):
         print('start training')
