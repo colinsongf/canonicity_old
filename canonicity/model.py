@@ -12,10 +12,15 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
+
+
 class Canonicity:
     def __init__(self, args, schema, data, features, anchors):
         self.schema = schema
+        self.hashing_size = 0
         self.num_nodes = len(data)
+        if self.hashing_size > 0:
+            self.num_nodes = self.hashing_size
         self.embedding_dim = args.embedding_dim
         self.learning_rate = args.learning_rate
         self.neg_rate = args.neg_rate
@@ -141,7 +146,13 @@ class Canonicity:
                     for _ in range(self.neg_rate):
                         g.append((clique[0][0], random.randint(0, self.num_nodes)))
                         gy.append(-1.0)
-                print("f")
+                if self.hashing_size > 0:
+                    for row in g:
+                        row[0] %= self.hashing_size
+                        row[1] %= self.hashing_size
+                    for row in ind:
+                        row %= self.hashing_size
+
                 yield (np.array(g, dtype=np.int32),
                        np.array(gy, dtype=np.int32),
                        x,

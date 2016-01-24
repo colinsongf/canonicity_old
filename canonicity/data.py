@@ -45,33 +45,76 @@ def get_eval_data():
 
 
 def gen_feature():
-    vocab = pickle.load(open("vocab.pkl", "rb"))
-    token_to_idx = pickle.load(open("token_to_idx.pkl", "rb"))
-    idx_to_token = pickle.load(open("idx_to_token.pkl", "rb"))
-    fvectors = pickle.load(open("fvectors.pkl", "rb"))
-    data = pickle.load(open("dblp_data.pkl", "rb"))
+    vocab = pickle.load(open("data/vocab.pkl", "rb"))
+    token_to_idx = pickle.load(open("data/token_to_idx.pkl", "rb"))
+    idx_to_token = pickle.load(open("data/idx_to_token.pkl", "rb"))
+    fvectors = pickle.load(open("data/fvectors.pkl", "rb"))
+    data = pickle.load(open("data/dblp_data_new.pkl", "rb"))
 
     cell = {}
     row = {}
     col = {}
-    for t in ["p_n", "a_n"]:
+    for t in ["k", "v", "t", "o", "n", "p_n", "a_n"]:
         row[t] = []
         col[t] = []
         cell[t] = []
 
+    feature_length = {
+        "k": 5000,
+        "v": 100,
+        "t": 900,
+        "o": 600,
+        "n": 5000,
+        "p_n": 5000,
+        "a_n": 5000
+    }
+
     r = 0
     for item in data.values():
         if "a" in item:
+            # title
+            for w in word_tokenize(item["t"].lower()):
+                sw = stemmer.stem(w)
+                if sw in token_to_idx["t"]:
+                    col["t"].append(token_to_idx["t"][sw] % feature_length["t"])
+                    row["t"].append(r)
+                    cell["t"].append(.1 / vocab["t"][sw])
+            # keywords
+            for w in item["k"]:
+                sw = stemmer.stem(w.lower())
+                if sw in token_to_idx["k"]:
+                    col["k"].append(token_to_idx["k"][sw] % feature_length["k"])
+                    row["k"].append(r)
+                    cell["k"].append(.1 / vocab["k"][sw])
+            # venue
+            if item["v"].lower() in token_to_idx["v"]:
+                col["v"].append(token_to_idx["v"][item["v"].lower()] % feature_length["v"])
+                row["v"].append(r)
+                cell["v"].append(.1 / vocab["v"][item["v"].lower()])
+            # author names
             for a in item["a"]:
                 if a["n"] in token_to_idx["n"]:
-                    col["p_n"].append(token_to_idx["n"][a["n"].lower()])
+                    col["p_n"].append(token_to_idx["n"][a["n"].lower()] % feature_length["n"])
                     row["p_n"].append(r)
                     cell["p_n"].append(.1 / vocab["n"][a["n"].lower()])
         else:
+            # name
+            if item["n"] in token_to_idx["n"]:
+                col["n"].append(token_to_idx["n"][item["n"].lower()] % feature_length["n"])
+                row["n"].append(r)
+                cell["n"].append(.1 / vocab["n"][item["n"].lower()])
+            # org
+            for w in word_tokenize(item["o"].lower()):
+                sw = stemmer.stem(w)
+                if sw in token_to_idx["o"]:
+                    col["o"].append(token_to_idx["o"][sw] % feature_length["o"])
+                    row["o"].append(r)
+                    cell["o"].append(.1 / vocab["o"][sw])
+            # coauthor
             for a in data[item["p"]]["a"]:
                 if a["i"] != item["i"]:
                     if a["n"] in token_to_idx["n"]:
-                        col["p_n"].append(token_to_idx["n"][a["n"].lower()])
+                        col["p_n"].append(token_to_idx["n"][a["n"].lower()] % feature_length["n"])
                         row["p_n"].append(r)
                         cell["p_n"].append(.1 / vocab["n"][a["n"].lower()])
 
@@ -79,9 +122,9 @@ def gen_feature():
         if r % 10000 == 0:
             print(r)
 
-    for t in ["p_n", "a_n"]:
+    for t in ["k", "v", "t", "o", "n", "p_n", "a_n"]:
         fvectors[t] = sparse.coo_matrix((cell[t], (row[t], col[t])),
-                                        shape=(len(data), len(idx_to_token["n"])),
+                                        shape=(len(data), feature_length[t]),
                                         dtype=np.float32).tocsr()
 
     features = {
@@ -89,7 +132,7 @@ def gen_feature():
         "p": sparse.hstack([fvectors[k] for k in ["o", "a_n"]]).tocsr()
     }
 
-    with open("features.pkl", "wb") as f_out:
+    with open("features_hashed.pkl", "wb") as f_out:
         pickle.dump(features, f_out)
 
 def gen_anchor():
