@@ -1,6 +1,6 @@
 import argparse
 import pickle
-from .model import Canonicity
+from canonicity.model import Canonicity
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -9,9 +9,9 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', type=int, default=0.1)
     args = parser.parse_args()
 
-    features = pickle.load(open("../data/features.pkl", "rb"))
-    anchors = pickle.load(open("../data/anchors.pkl", "rb"))
-    data = pickle.load(open("../data/dblp_data_new.pkl", "rb"))
+    features = pickle.load(open("data/features.pkl", "rb"))
+    anchors = pickle.load(open("data/anchors.pkl", "rb"))
+    data = pickle.load(open("data/dblp_data_new.pkl", "rb"))
     schema = {
         "nodes": {}
     }

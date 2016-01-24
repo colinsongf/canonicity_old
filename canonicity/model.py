@@ -91,7 +91,7 @@ class Canonicity:
         anchor_loss = -T.log(T.nnet.sigmoid(T.sum(p_anchor_y_sym, axis=1) * anchor_y_sym)).sum()
         anchor_params = lasagne.layers.get_all_params(l_anchor_y, trainable=True)
         anchor_updates = lasagne.updates.sgd(anchor_loss, anchor_params, learning_rate=self.g_learning_rate)
-        self.anchor_fn = theano.function([anchor_sym, anchor_y_sym], g_loss, updates=anchor_updates,
+        self.anchor_fn = theano.function([anchor_sym, anchor_y_sym], anchor_loss, updates=anchor_updates,
                                          on_unused_input='warn')
 
         # self.x_sym, self.y_sym, self.ind_sym = x_sym, y_sym, ind_sym
