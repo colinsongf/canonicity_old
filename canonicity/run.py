@@ -4,7 +4,7 @@ from canonicity.model import Canonicity
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--neg_rate', type=int, default=0)
+    parser.add_argument('--neg_rate', type=int, default=10)
     parser.add_argument('--embedding_dim', type=int, default=100)
     parser.add_argument('--learning_rate', type=int, default=0.1)
     args = parser.parse_args()

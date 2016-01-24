@@ -35,7 +35,7 @@ class Canonicity:
         g_sym = T.imatrix('g')  # a pair of node index (an edge)
         gy_sym = T.vector('gy')  # label of a pair (indicating whether it is a false edge)
         l_g_in = lasagne.layers.InputLayer(shape=(None, 2), input_var=g_sym)
-        l_gy_in = lasagne.layers.InputLayer(shape=(None,), input_var=gy_sym)
+        # l_gy_in = lasagne.layers.InputLayer(shape=(None,), input_var=gy_sym)
         # embedding of node i (pivot node)
         l_emb_local_i = lasagne.layers.SliceLayer(l_g_in, indices=0, axis=1)
         l_emb_local_i = lasagne.layers.EmbeddingLayer(l_emb_local_i, input_size=self.num_nodes,
