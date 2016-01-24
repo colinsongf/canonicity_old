@@ -66,7 +66,7 @@ class Canonicity:
         attr_loss = {}
         for n in self.schema["nodes"]:
             x_sym[n] = sparse.csr_matrix(n, dtype='float32')
-            l_x_in[n] = lasagne.layers.InputLayer(shape=(None, xself.schema["nodes"][n]), input_var=x_sym[n])
+            l_x_in[n] = lasagne.layers.InputLayer(shape=(None, self.schema["nodes"][n]), input_var=x_sym[n])
             l_x_hid[n] = layers.SparseLayer(l_x_in[n], self.embedding_dim)
             l_ay = lasagne.layers.ElemwiseMergeLayer([l_x_hid[n], l_emb_f], T.mul)
             pay_sym = lasagne.layers.get_output(l_ay)
