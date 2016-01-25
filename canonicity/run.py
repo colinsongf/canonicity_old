@@ -12,12 +12,13 @@ if __name__ == '__main__':
     features = pickle.load(open("data/features_hashed.pkl", "rb"))
     anchors = pickle.load(open("data/anchors.pkl", "rb"))
     data = pickle.load(open("data/dblp_data_new.pkl", "rb"))
+    test_data = pickle.load(open("data/eval_pairs.pkl", "rb"))
     schema = {
         "nodes": {}
     }
     for n in features:
         schema["nodes"][n] = features[n].shape[1]
 
-    model = Canonicity(args, schema, data, features, anchors, 10000)
+    model = Canonicity(args, schema, data, features, anchors, 10000, test_data)
     model.build()
     model.train()

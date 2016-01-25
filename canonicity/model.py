@@ -15,7 +15,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class Canonicity:
-    def __init__(self, args, schema, data, features, anchors, hashing_size):
+    def __init__(self, args, schema, data, features, anchors, hashing_size, test_data):
         self.schema = schema
         self.hashing_size = hashing_size
         self.num_nodes = len(data)
@@ -33,6 +33,18 @@ class Canonicity:
         self.anchors = anchors
         self.features = features
         self.batch_size = 100
+        self.test_x = []
+        self.test_y = []
+        if self.hashing_size > 0:
+            for t in test_data:
+                self.test_x.append((t[0] % self.hashing_size, t[1] % self.hashing_size))
+                self.test_y.append(t[2])
+        else:
+            for t in test_data:
+                self.test_x.append((t[0], t[1]))
+                self.test_y.append(t[2])
+        self.test_x = np.array(self.test_x, dtype=np.int32)
+        self.test_y = np.array(self.test_y, dtype=np.int32)
         np.random.seed(1)
         random.seed(1)
 
@@ -100,6 +112,9 @@ class Canonicity:
         self.anchor_fn = theano.function([anchor_sym, anchor_y_sym], anchor_loss, updates=anchor_updates,
                                          on_unused_input='warn')
 
+        tp_anchor_y_sym = lasagne.layers.get_output(l_anchor_y, deterministic=True)
+        acc = T.mean(T.eq(T.argmax(tp_anchor_y_sym, axis = 1), y_sym))
+        self.test_fn = theano.function([tp_anchor_y_sym, anchor_y_sym], acc, on_unused_input='warn')
         # self.x_sym, self.y_sym, self.ind_sym = x_sym, y_sym, ind_sym
 
     def get_feature(self, n):
@@ -200,3 +215,4 @@ class Canonicity:
                 anchor_y.append(b)
             loss = self.anchor_fn(np.vstack(anchor), np.hstack(anchor_y))
             print(loss)
+            self.test_fn(self.test_x, self.test_y)
