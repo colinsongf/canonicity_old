@@ -113,8 +113,10 @@ class Canonicity:
                                          on_unused_input='warn')
 
         tp_anchor_y_sym = lasagne.layers.get_output(l_anchor_y, deterministic=True)
-        acc = T.mean(T.eq(T.argmax(tp_anchor_y_sym, axis = 1), y_sym))
-        self.test_fn = theano.function([tp_anchor_y_sym, anchor_y_sym], acc, on_unused_input='warn')
+        tp_anchor_y_sym = T.sum(tp_anchor_y_sym, axis=1)
+        acc = T.mean(T.eq(T.ge(tp_anchor_y_sym, 0), anchor_y_sym))
+        self.test_fn = theano.function([anchor_sym, anchor_y_sym], acc, on_unused_input='warn')
+        # xx = theano.function([anchor_sym], lasagne.layers.get_output(l_anchor_y, deterministic=True))
         # self.x_sym, self.y_sym, self.ind_sym = x_sym, y_sym, ind_sym
 
     def get_feature(self, n):
@@ -200,14 +202,16 @@ class Canonicity:
 
         max_acc = 0.0
 
+
         while True:
+            # for _ in range(1000):
             g, gy, x, y, ind, t = next(self.gen_context_graph())
             if len(g) > 0:
                 loss = self.graph_fn(g, gy)
-                print(loss)
+                # print(loss)
             for i, a in enumerate(t):
                 loss = self.attr_fn[a](x[i], [y[i]], [ind[i]])
-                print(loss)
+                # print(loss)
             anchor, anchor_y = [], []
             for _ in range(10):
                 a, b = next(self.gen_anchor())
@@ -215,4 +219,6 @@ class Canonicity:
                 anchor_y.append(b)
             loss = self.anchor_fn(np.vstack(anchor), np.hstack(anchor_y))
             print(loss)
-            self.test_fn(self.test_x, self.test_y)
+            # loss = self.anchor_fn(self.test_x, self.test_y)
+            # print(loss)
+            print(self.test_fn(self.test_x, self.test_y))
