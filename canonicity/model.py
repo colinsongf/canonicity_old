@@ -202,7 +202,7 @@ class Canonicity:
 
         max_acc = 0.0
 
-
+        cnt = 0
         while True:
             # for _ in range(1000):
             g, gy, x, y, ind, t = next(self.gen_context_graph())
@@ -218,7 +218,11 @@ class Canonicity:
                 anchor.append(a)
                 anchor_y.append(b)
             loss = self.anchor_fn(np.vstack(anchor), np.hstack(anchor_y))
-            print(loss)
+            # print(loss)
             # loss = self.anchor_fn(self.test_x, self.test_y)
             # print(loss)
-            print(self.test_fn(self.test_x, self.test_y))
+            acc = self.test_fn(self.test_x, self.test_y)
+            if acc > max_acc:
+                max_acc = acc
+            print(cnt, acc, max_acc)
+            cnt += 1
