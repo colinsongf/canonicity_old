@@ -109,7 +109,7 @@ class Canonicity:
         ind.append(n[0])
         t.append(n[1])
         for _ in range(self.neg_rate):
-            m = random.randint(0, self.num_nodes)
+            m = random.randint(0, self.num_nodes-1)
             x.append(self.features[n[1]][n[0]])
             y.append(-1.0)
             ind.append(m)
@@ -118,65 +118,67 @@ class Canonicity:
 
     def gen_context_graph(self):
         while True:
-            idx = np.random.permutation(len(self.data))
-            for i in range(idx.shape[0]):
-                print(i, idx[i])
-                g, gy = [], []
-                pivot_node = self.data[idx[i]]
-                clique = []
-                if "a" in pivot_node:
-                    clique.append((pivot_node["i"], "p"))
-                    for a in pivot_node["a"]:
+            # idx = np.random.permutation(len(self.data))
+            idx = np.random.randint(0, len(self.data)-1)
+            # for i in range(idx.shape[0]):
+            #     print(i, idx[i])
+            g, gy = [], []
+            pivot_node = self.data[idx]
+            clique = []
+            if "a" in pivot_node:
+                clique.append((pivot_node["i"], "p"))
+                for a in pivot_node["a"]:
+                    clique.append((a["i"], "a"))
+            else:
+                clique.append((pivot_node["i"], "a"))
+                p = self.data[pivot_node["p"]]
+                clique.append((p["i"], "p"))
+                for a in p["a"]:
+                    if a["i"] != pivot_node["i"]:
                         clique.append((a["i"], "a"))
-                else:
-                    clique.append((pivot_node["i"], "a"))
-                    p = self.data[pivot_node["p"]]
-                    clique.append((p["i"], "p"))
-                    for a in p["a"]:
-                        if a["i"] != pivot_node["i"]:
-                            clique.append((a["i"], "a"))
-                x, y, ind, t = self.get_feature(clique[0])
-                for n in clique[1:]:
-                    x_, y_, ind_, t_ = self.get_feature(n)
-                    x = x + x_
-                    y = y + y_
-                    ind += ind_
-                    t += t_
-                    g.append((clique[0][0], n[0]))
-                    gy.append(1.0)
-                    for _ in range(self.neg_rate):
-                        g.append((clique[0][0], random.randint(0, self.num_nodes)))
-                        gy.append(-1.0)
-                g_ = []
-                ind_ = []
-                if self.hashing_size > 0:
-                    for row in g:
-                        g_.append((row[0] % self.hashing_size, row[1] % self.hashing_size))
-                    for row in ind:
-                        ind_.append(row % self.hashing_size)
+            x, y, ind, t = self.get_feature(clique[0])
+            for n in clique[1:]:
+                x_, y_, ind_, t_ = self.get_feature(n)
+                x = x + x_
+                y = y + y_
+                ind += ind_
+                t += t_
+                g.append((clique[0][0], n[0]))
+                gy.append(1.0)
+                for _ in range(self.neg_rate):
+                    g.append((clique[0][0], random.randint(0, self.num_nodes-1)))
+                    gy.append(-1.0)
+            g_ = []
+            ind_ = []
+            if self.hashing_size > 0:
+                for row in g:
+                    g_.append((row[0] % self.hashing_size, row[1] % self.hashing_size))
+                for row in ind:
+                    ind_.append(row % self.hashing_size)
 
-                yield (np.array(g_, dtype=np.int32),
-                       np.array(gy, dtype=np.int32),
-                       x,
-                       np.array(y, dtype=np.int32),
-                       np.array(ind_, dtype=np.int32),
-                       t)
+            yield (np.array(g_, dtype=np.int32),
+                   np.array(gy, dtype=np.int32),
+                   x,
+                   np.array(y, dtype=np.int32),
+                   np.array(ind_, dtype=np.int32),
+                   t)
 
     def gen_anchor(self):
         while True:
-            idx = np.random.permutation(len(self.anchors))
-            for i in range(idx.shape[0]):
-                anchor, anchor_y = [], []
-                anchor.append(self.anchors[i])
-                anchor_y.append(1.0)
-                for _ in range(self.neg_rate):
-                    anchor.append((self.anchors[i][0], random.randint(0, self.num_nodes)))
-                    anchor_y.append(-1.0)
-                anchor_ = []
-                if self.hashing_size > 0:
-                    for row in anchor:
-                        anchor_.append((row[0] % self.hashing_size, row[1] % self.hashing_size))
-                yield np.array(anchor_, dtype=np.int32), np.array(anchor_y, dtype=np.int32)
+            # idx = np.random.permutation(len(self.anchors))
+            i = np.random.randint(0, len(self.anchors)-1)
+            # for i in range(idx.shape[0]):
+            anchor, anchor_y = [], []
+            anchor.append(self.anchors[i])
+            anchor_y.append(1.0)
+            for _ in range(self.neg_rate):
+                anchor.append((self.anchors[i][0], random.randint(0, self.num_nodes-1)))
+                anchor_y.append(-1.0)
+            anchor_ = []
+            if self.hashing_size > 0:
+                for row in anchor:
+                    anchor_.append((row[0] % self.hashing_size, row[1] % self.hashing_size))
+            yield np.array(anchor_, dtype=np.int32), np.array(anchor_y, dtype=np.int32)
 
     def train(self):
         print('start training')
