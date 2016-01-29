@@ -72,7 +72,7 @@ class Canonicity:
         self.embedding = l_emb_local_i.W
 
         # local attributes
-        ind_sym = T.ivector('ind')
+        ind_sym = T.ivector('ind') 
         l_ind_in = lasagne.layers.InputLayer(shape=(None,), input_var=ind_sym)
         # embedding of current node
         l_emb_f = lasagne.layers.EmbeddingLayer(l_ind_in, input_size=self.num_nodes,

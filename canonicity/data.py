@@ -7,32 +7,36 @@ import numpy as np
 
 stemmer = PorterStemmer()
 
+def clean_name(name):
+    x = [k.replace(".", "").replace("-", "").strip() for k in name.lower().split(" ")]
+    return " ".join(x).strip()
+
 def get_eval_data():
-    id_to_idx = pickle.load(open("id_to_idx.pkl", "rb"))
-    label_data = pickle.load(open("person_pub_data.pkl", "rb"))
+    id_to_idx = pickle.load(open("data/id_to_idx.pkl", "rb"))
+    label_data = pickle.load(open("data/person_pub_data.pkl", "rb"))
     eval_pairs = []
     eval_pairs_blocked = {}
     eval_ins_blocked = {}
     for d in label_data:
         label_to_id = dd(list)
+        id_to_label = {}
         eval_pairs_blocked[d["name"]] = []
         eval_ins_blocked[d["name"]] = []
         for p in d["pubs"]:
             x = p['id'] + "." + str(p['offset'])
             if x in id_to_idx:
                 label_to_id[p['label']].append(id_to_idx[x])
-        for l in label_to_id:
-            for i in range(len(label_to_id[l])):
-                eval_ins_blocked[d["name"]].append(label_to_id[l][i])
-                for j in range(i+1, len(label_to_id[l])):
-                    eval_pairs.append((label_to_id[l][i], label_to_id[l][j], 1))
-                    eval_pairs_blocked[d["name"]].append((label_to_id[l][i], label_to_id[l][j], 1))
-        for l1 in range(len(label_to_id)):
-            for l2 in range(l1+1, len(label_to_id)):
-                for n1 in label_to_id[l1]:
-                    for n2 in label_to_id[l2]:
-                        eval_pairs.append((n1, n2, 0))
-                        eval_pairs_blocked[d["name"]].append((n1, n2, 0))
+                id_to_label[id_to_idx[x]] = p["label"]
+        nodes = list(id_to_label.keys())
+        eval_ins_blocked[d["name"]] = nodes
+        for i in range(len(nodes)):
+            for j in range(i+1, len(nodes)):
+                if id_to_label[nodes[i]] == id_to_label[nodes[i+1]]:
+                    eval_pairs.append((nodes[i], nodes[i+1], 1))
+                    eval_pairs_blocked[d["name"]].append((nodes[i], nodes[i+1], 1))
+                else:
+                    eval_pairs.append((nodes[i], nodes[i+1], 0))
+                    eval_pairs_blocked[d["name"]].append((nodes[i], nodes[i+1], 0))
 
     with open("eval_pairs.pkl", "wb") as f_out:
         pickle.dump(eval_pairs, f_out)
@@ -134,6 +138,7 @@ def gen_feature():
 
     with open("features_hashed.pkl", "wb") as f_out:
         pickle.dump(features, f_out)
+
 
 def gen_anchor():
     data = pickle.load(open("dblp_data.pkl", "rb"))
